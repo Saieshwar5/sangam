@@ -1,0 +1,811 @@
+/* ==================== LOADING & ERROR STATES ==================== */
+.loadingContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.loader {
+    text-align: center;
+}
+
+.loaderSpinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loadingText {
+    color: white;
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+.errorContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.errorContent {
+    text-align: center;
+    background: white;
+    padding: 3rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+}
+
+.errorIcon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.errorTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.errorMessage {
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.errorButton {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.errorButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ==================== PAGE CONTAINER ==================== */
+.pageContainer {
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* ==================== RESPONSIVE LAYOUT CONTROL ==================== */
+/* Desktop Layout - Show fancy header and two-column layout */
+.desktopHeader {
+    display: block;
+}
+
+.desktopLayout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6rem 1rem 2rem;
+}
+
+/* Mobile Layout - Show simple header and single-column layout */
+.mobileHeader {
+    display: none;
+}
+
+.mobileLayout {
+    display: none;
+}
+
+/* ==================== HEADER SECTION ==================== */
+.groupHeader {
+    position: relative;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.coverImageContainer {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.coverImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.coverPlaceholder {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.coverPattern {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.coverPattern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, 0.1) 35px, rgba(255, 255, 255, 0.1) 70px);
+}
+
+.coverGradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+}
+
+/* Group Info Card (Glassmorphism) */
+.groupInfoCard {
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 1200px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+ 
+}
+
+.groupInfoLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.groupLogoContainer {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: white;
+    border: 4px solid white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.groupLogo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.groupLogoPlaceholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.groupLogoPlaceholder svg {
+    width: 3rem;
+    height: 3rem;
+    color: white;
+}
+
+.groupNameSection {
+    flex: 1;
+}
+
+.groupName {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.groupIdBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.groupIdLabel {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+}
+
+/* Action Buttons */
+.groupActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.editButton {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.5rem;
+    color: #4b5563;
+}
+
+.editButton:hover {
+    background: #e5e7eb;
+    transform: rotate(15deg) scale(1.1);
+}
+
+.joinButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 9999px;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(102, 126, 234, 0.4);
+}
+
+.joinButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.buttonIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* ==================== INFO CARDS SECTION ==================== */
+.infoCardsSection {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6rem 1rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Info Cards */
+.infoCard {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.infoCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.cardTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.cardIcon {
+    font-size: 1.5rem;
+}
+
+.cardIconSvg {
+    font-size: 1.5rem;
+    color: #667eea;
+}
+
+.cardText {
+    color: #4b5563;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+/* Social Media Card */
+.socialCard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.3);
+}
+
+.socialCard .cardTitle {
+    color: white;
+}
+
+.socialLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.socialButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    color: white;
+}
+
+.socialButton.youtube {
+    background: #ff0000;
+}
+
+.socialButton.twitter {
+    background: #1da1f2;
+}
+
+.socialButton.instagram {
+    background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+}
+
+.socialButton:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.socialIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.deskTopGallerySection {
+    width: 100%;
+    max-width: 100vw;
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.galleryCard {
+    width: 96%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 1rem;
+}
+
+/*======================= (members section) ====================*/
+.rightColumn {
+    width: 100%;
+    margin: 0 auto;
+    background: white;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border: 1px solid #f3f4f6;
+    height: 100%;
+}
+
+ .membersHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    flex: 10%;
+    gap: 1rem;
+    width: 100%;
+ }
+ .membersContent {
+
+    flex: 90%;
+    display: flex;
+    align-items: start;
+    flex-direction: column;
+    justify-content: start;
+    overflow-y: scroll;
+    width: 100%;
+    height: 100%;
+    gap: 0.5rem;
+ }
+
+
+/* ==================== FULL WIDTH SECTION (Gallery/Members) ==================== */
+.fullWidthSection {
+    width: 100%;
+    max-width: 100vw;
+    padding: 2rem 0;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.fullWidthSection .tabCard {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tabHeaders {
+    display: flex;
+    border-bottom: 2px solid #f3f4f6;
+     
+}
+
+.tabButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.tabButton::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transition: transform 0.2s;
+}
+
+.tabButton.tabActive {
+    color: #667eea;
+}
+
+.tabButton.tabActive::after {
+    transform: scaleX(1);
+}
+
+.tabIcon {
+    font-size: 1.25rem;
+}
+
+.tabContent {
+    padding: 2rem;
+    min-height: 300px;
+}
+
+/* Scrollable Tab Content for Full Width Section */
+.tabContentScrollable {
+    padding: 2rem;
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom scrollbar for tab content */
+.tabContentScrollable::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tabContentScrollable::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+
+.tabContentScrollable::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+.tabContentScrollable::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Empty State */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+
+.emptyText {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+.emptySubtext {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+/* ==================== MOBILE HEADER STYLES ==================== */
+.mobileHeader {
+    background: white;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.mobileGroupInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.mobileLogoContainer {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.mobileLogo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mobileLogoPlaceholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobileLogoPlaceholder svg {
+    width: 2rem;
+    height: 2rem;
+    color: white;
+}
+
+.mobileGroupDetails {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobileGroupName {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mobileGroupId {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mobileJoinButton {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.mobileJoinButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 1024px) {
+    /* Switch to mobile layout */
+    .desktopHeader {
+        display: none;
+    }
+    
+    .desktopLayout {
+        display: none;
+    }
+    
+    .mobileHeader {
+        display: block;
+    }
+    
+    .mobileLayout {
+        display: block;
+        padding: 1rem;
+    }
+    
+    .infoCardsSection {
+        padding: 1rem 0;
+    }
+    
+    .fullWidthSection {
+        padding: 1rem 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .coverImageContainer {
+        height: 250px;
+    }
+    
+    .groupInfoCard {
+        flex-direction: column;
+        bottom: -100px;
+        padding: 1.5rem;
+    }
+    
+    .groupInfoLeft {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .groupName {
+        font-size: 1.5rem;
+    }
+    
+    .groupActions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .joinButton {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .infoCardsSection {
+        padding-top: 8rem;
+    }
+    
+    .socialLinks {
+        flex-direction: column;
+    }
+    
+    .socialButton {
+        justify-content: center;
+    }
+    
+    .tabContentScrollable {
+        max-height: 400px;
+    }
+    .deskTopGallerySection {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .groupInfoCard {
+        width: 90%;
+    }
+    
+    .groupLogoContainer {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .tabHeaders {
+        flex-direction: column;
+    }
+    .deskTopGallerySection {
+        display: none;
+    }
+}
+
+
+/* Add to groupDetails.module.css */
+
+/* User Cards Grid */
+.userCardsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .userCardsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .userCardsGrid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+}
+
+/* Line clamp utility */
+
+

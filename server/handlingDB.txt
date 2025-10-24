@@ -1,0 +1,50 @@
+how to start a docker container 
+
+
+
+docker run --name my-mysql-container -e MYSQL_ROOT_PASSWORD=mysecretpassword -p 3306:3306 -d mysql:latest
+
+
+
+--name my-mysql-container: Assigns a readable name to your container.
+
+-e MYSQL_ROOT_PASSWORD=mysecretpassword: Sets the root user's password.
+
+-p 3306:3306: Maps the container's internal port 3306 to port 3306 on your host machine. This is crucial for external connections.
+
+-d: Runs the container in the background.
+
+mysql:latest: Specifies the image to use.
+
+You can verify the container is running with docker ps.
+
+
+
+
+
+connecting the docker sontainer through terminal
+
+docker exec -it my-mysql-container bash
+
+
+docker exec: Executes a command in a running container.
+
+-it: Creates an interactive terminal session.
+
+my-mysql-container: The name of your container.
+
+bash: The command to run inside the container to start a bash shell.
+
+
+Once inside the container's shell, you can connect to MySQL itself using the MySQL client:
+
+
+mysql -u root -p
+
+
+
+
+_____________________________________________________________________________________________   -________________________________
+
+
+

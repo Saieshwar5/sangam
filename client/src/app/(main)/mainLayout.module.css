@@ -1,0 +1,48 @@
+.mainPageLayout{
+    display: grid;
+    background-color: rgb(153, 246, 228);
+    grid-template-columns: 160px 1fr;      /* left fixed width, main fills remaining */
+    grid-template-rows: 40px 1fr;          /* header fixed height, content fills remaining */
+    grid-template-areas:
+    "header header"
+    "left main";
+    height: 100vh;
+                        /* fill viewport height */
+}
+
+.top{
+    display: flex;
+    grid-area: header;
+    background-color: rgb(153, 246, 228);
+   /* border-bottom: 0.5px solid black;     */
+    position: sticky;  /* stays at top if scrolling */
+    top: 0;
+    z-index: 10;  
+}
+
+.left{
+    display: flex;
+    grid-area: left;
+    /*background-color: rgb(255, 255, 255);*/
+   /* overflow: auto;   */
+   /* border-right: 0.5px solid black; */  
+    position: sticky;  /* sidebar stays fixed */
+    left: 0;
+    top: 60px;         /* below the header */
+   /* height: calc(100vh - 60px);               /* scroll if content overflows */
+
+}
+
+.main{
+    display: flex;
+    grid-area: main;
+   
+   /* padding-left: 6px;
+    padding-right: 6px; */
+    background-color: rgb(204 251 241);
+   /* overflow: auto;   */
+    border: 0.5px solid grey;
+    border-radius: 6px; 
+    overflow-y: hidden;
+                    /* scroll if content overflows */
+}
