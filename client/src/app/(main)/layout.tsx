@@ -4,6 +4,7 @@ import { useEffect } from "react"
 
 import { useSearchParams } from "next/navigation"
 import { useRouter } from "next/navigation"
+import { SocketProvider } from "../context/socketContext";
 
 import styles from "./mainLayout.module.css"
 import Header from "../ui_components/header"
@@ -16,6 +17,7 @@ export default function MainLayout({children}: Readonly<{
      
 
     return(
+        <SocketProvider>
         <div className={styles.mainPageLayout} > 
            <div className={styles.top}>
             <Header />
@@ -27,5 +29,6 @@ export default function MainLayout({children}: Readonly<{
            {children} 
             </div> 
         </div>
+        </SocketProvider>
     )
 }

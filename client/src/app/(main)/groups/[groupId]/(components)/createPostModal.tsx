@@ -25,7 +25,6 @@ const postTypes = {
     "Announcement": "announce something to the community",
     "notification": "notification to the community",
     "alert": "alert to the community",
-    "live discussion": "live discussion with your community members",
     "suggestion": "suggest something to the community",
     "survey": "survey",
     "feedback": "give feedback to the community",

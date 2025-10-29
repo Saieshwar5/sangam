@@ -35,12 +35,18 @@ export default function DiscussionPostComponent({
     const handleCommentClick = () => {
         setIsClickedOnComment(true);
         setIsPostPageLoading(true);
-        router.push(`/groups/${groupId}/posts/discussion/${postId}/discussion-comments`);
+        router.push(`/groups/${groupId}/${postId}`);
+    }
+    const handlePostClick = () => {
+        setIsPostPageLoading(true);
+        router.push(`/groups/${groupId}/${postId}`);
     }
     const handleLikeClick = () => {
         setIsLiked(true);
     }
-    
+    const handleProfileClick = () => {
+        router.push(`/profile/${postCreator}`);
+    }
     if(isPostPageLoading) {
         return <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
@@ -55,7 +61,9 @@ export default function DiscussionPostComponent({
             <div className="p-2 pb-4">
                 {/* Post Creator */}
                 <div className="flex flex-row items-center justify-between gap-3 mb-4">
-                  <div className="flex flex-row items-center gap-3">
+                  <div className="flex flex-row items-center gap-3 cursor-pointer"
+                  onClick={handleProfileClick}
+                  >
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center shadow-md">
                         <span className="text-white font-bold text-sm">
                             {postCreator.charAt(0).toUpperCase()}
@@ -87,7 +95,9 @@ export default function DiscussionPostComponent({
                 </div>
 
                 {/* Post Content */}
-                <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400">
+                <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400"
+                onClick={handlePostClick}
+                >
                     <p className="text-gray-700 text-sm leading-relaxed">
                         {postContent}
                     </p>

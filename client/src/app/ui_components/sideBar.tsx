@@ -3,17 +3,31 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useIsAuthenticated, useSignOut } from "@/hooks/useAuth"
+import { useIsAuthenticated, useSignOut , useUser} from "@/hooks/useAuth"
+import { useMessageStore } from '@/app/context/userMessageStore';
 
 import { IoIosNotifications } from "react-icons/io";
 
 export default function SideBar() {
+    const { unreadCount, loadUnreadCount, isLoadingUnread } = useMessageStore();
     const [activeButton, setActiveButton] = useState<string>("")
     const router = useRouter()
-
+    const user = useUser()
    
     const isAuthenticated = useIsAuthenticated()
     const signOut = useSignOut()
+    
+    // Sample unread messages count
+    
+    // Simulate receiving new messages (sample data)
+    useEffect(() => {
+        if (user?.id) {
+            // Load unread count on mount
+            loadUnreadCount(user.id);
+              
+        }
+    }, [user?.id, loadUnreadCount]);
+    
     const handleButtonClick = (buttonName: string) => {
         setActiveButton(buttonName)
         // You can add navigation logic here if needed
@@ -23,7 +37,7 @@ export default function SideBar() {
                 router.push("/groups")
                 break
             case "chat":
-                // Navigate to chat page
+                // Navigate to chat page// Clear unread count when opening chat
                 router.push("/chat")
                 break
             case "profile":
@@ -50,7 +64,7 @@ export default function SideBar() {
         }
     }
     const buttonStyle = (isActive: boolean) => {
-        const baseStyle = "w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:bg-teal-400"
+        const baseStyle = "w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 hover:bg-teal-400 relative"
         const activeStyle = "bg-teal-600 text-white border-r-2 border-black"
         const inactiveStyle = "text-black hover:text-gray-900"
         
@@ -75,19 +89,28 @@ export default function SideBar() {
                 <span>Groups</span>
             </button>
 
-            {/* Chat Button */}
+            {/* Chat Button with Unread Badge */}
             <button
                 onClick={() => handleButtonClick("chat")}
                 className={`${buttonStyle(activeButton === "chat")} mb-4`}
             >
-                <Image
-                    src="/chat.svg"
-                    alt="Chat"
-                    width={24}
-                    height={24}
-                    className="flex-shrink-0"
-                />
-                <span>Chat</span>
+                <div className="flex items-center gap-3 relative">
+                    <Image
+                        src="/chat.svg"
+                        alt="Chat"
+                        width={24}
+                        height={24}
+                        className="flex-shrink-0"
+                    />
+                    <span>Chat</span>
+                </div>
+                
+                {/* Unread Messages Badge */}
+                {unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                )}
             </button>
 
             {/* Profile Button */}

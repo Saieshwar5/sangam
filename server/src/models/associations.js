@@ -3,7 +3,10 @@ import Profile from './profileOrm.js';
 import Communities from './groupsOrm.js';
 import UserGroups from './userGroupsOrm.js';
 import GroupPosts from './groupPosts.js';
+import UsersMessages from './usersMessagesOrm.js';
 import { DataTypes } from 'sequelize';
+import ChatUser from './chatUsersOrm.js';
+
 
 
 /**
@@ -149,6 +152,7 @@ Communities.hasMany(UserGroups, {
     
     GroupPosts.belongsTo(User, {
         foreignKey: 'postCreator',
+        
         targetKey: 'userId',
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
@@ -175,7 +179,101 @@ User.hasMany(UserGroups, {
 });
 
 
+// =========================================
+// UsersMessages <-> User (for accessing user data from UserMessages)
+// ==========================================
 
+// User can send many messages
+User.hasMany(UsersMessages, {
+    foreignKey: 'userId',
+    sourceKey: 'userId',
+    as: 'sentMessages',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// Messages belong to the user who sent them
+UsersMessages.belongsTo(User, {
+    foreignKey: 'userId',
+    targetKey: 'userId',
+    as: 'sender',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// User can receive many messages
+User.hasMany(UsersMessages, {
+    foreignKey: 'sendTo',
+    sourceKey: 'userId',
+    as: 'receivedMessages',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// Messages belong to the user receiving them
+UsersMessages.belongsTo(User, {
+    foreignKey: 'sendTo',
+    targetKey: 'userId',
+    as: 'receiver',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+
+// ================================
+// ChatUsers <-> User (for accessing user data from ChatUsers)
+// ================================
+ChatUser.belongsTo(User, {
+    foreignKey: 'userId',
+    targetKey: 'userId',
+    as: 'owner',  // ✅ Clear alias: "owner of this chat contact"
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+User.hasMany(ChatUser, {
+    foreignKey: 'userId',
+    sourceKey: 'userId',
+    as: 'chatContacts',  // ✅ Clear alias: "list of chat contacts"
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// Relationship 2: ChatUsers.chatUserId belongs to User (the contact)
+// "Which user is this chat contact referring to"
+ChatUser.belongsTo(User, {
+    foreignKey: 'chatUserId',
+    targetKey: 'userId',
+    as: 'contactUser',  // ✅ Clear alias: "the contact user"
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+User.hasMany(ChatUser, {
+    foreignKey: 'chatUserId',
+    sourceKey: 'userId',
+    as: 'appearsInChatLists',  // ✅ Clear alias
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// ChatUser belongs to Profile (the contact's profile via chatUserId)
+ChatUser.belongsTo(Profile, {
+    foreignKey: 'chatUserId',  // Link to contact's userId
+    targetKey: 'userId',
+    as: 'profile',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// Profile can appear in many chat lists
+Profile.hasMany(ChatUser, {
+    foreignKey: 'chatUserId',
+    sourceKey: 'userId',
+    as: 'inChatLists',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
 
 
 
@@ -206,6 +304,12 @@ export async function syncModels() {
         await GroupPosts.sync({ alter: false });
         console.log('✅ GroupPosts model synchronized');
         
+        await UsersMessages.sync({ alter: false });
+        console.log('✅ UsersMessages model synchronized');
+        
+        await ChatUser.sync({ alter: false });
+        console.log('✅ ChatUsers model synchronized');
+        
         console.log('✅ All models synchronized successfully');
     } catch (error) {
         console.error('❌ Error synchronizing models:', error);
@@ -213,4 +317,4 @@ export async function syncModels() {
     }
 }
 
-export { User, Profile, Communities, UserGroups, GroupPosts };
+export { User, Profile, Communities, UserGroups, GroupPosts, UsersMessages, ChatUser };

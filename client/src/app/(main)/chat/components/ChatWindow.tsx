@@ -1,102 +1,348 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { FaPaperPlane, FaPaperclip, FaSmile, FaEllipsisV } from 'react-icons/fa';
 import MessageBubble from './MessageBubble';
+import { useSocket } from '@/app/context/socketContext';
+import { useUserAuthStore } from '@/app/context/userAuthStore';
+import { useMessageStore, Message } from '@/app/context/userMessageStore';
+import { ChatUser } from '@/app/context/userChatStore';
+import { useUserChatStore } from '@/app/context/userChatStore';
+import { useUserProfileStore } from '@/app/context/userProfileStore';
+
 
 interface User {
-    id: string;
-    name: string;
-    avatar: string;
+    userId: string;
+    userName: string;
+    userAvatar: string;
     isOnline: boolean;
     lastSeen?: string;
 }
 
-interface Message {
-    id: string;
-    text: string;
-    timestamp: string;
-    isSent: boolean;
-    isRead: boolean;
-}
-
 interface ChatWindowProps {
-    selectedUser: User | null;
+    selectedChatUser: string | null;
 }
 
-export default function ChatWindow({ selectedUser }: ChatWindowProps) {
+export default function ChatWindow({ selectedChatUser: selectedChatUserId }: ChatWindowProps) {
     const [newMessage, setNewMessage] = useState('');
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [isTyping, setIsTyping] = useState(false);
+    const [isUserOnline, setIsUserOnline] = useState(false);
+    const [typingUsers, setTypingUsers] = useState<string[]>([]);
+    const [isUserTyping, setIsUserTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    
+    const { 
+        messages, 
+        addMessage, 
+        sendMessage: saveMessageToDB, 
+        isLoading, 
+        error, 
+        success, 
+        loadMessages,
+        markSenderAsRead,
+        unreadMessages,
+        loadUnreadMessages,
+        getMessagesForRoom  // ✅ NEW
+    } = useMessageStore();
+    const { socket, isConnected, privateChatRoom, setPrivateChatRoom } = useSocket();
+    const { user } = useUserAuthStore();
+    
+    const profile = useUserProfileStore(state => state.profile);
+    const [hasLoadedHistory, setHasLoadedHistory] = useState(false); 
+    // Get messages for current room
 
-    // Dummy messages for the selected user
-    const dummyMessages: Record<string, Message[]> = {
-        '1': [
-            { id: '1', text: 'Hey! How are you doing today?', timestamp: '2:25 PM', isSent: false, isRead: true },
-            { id: '2', text: 'I\'m doing great, thanks for asking! How about you?', timestamp: '2:26 PM', isSent: true, isRead: true },
-            { id: '3', text: 'Pretty good! Just working on some projects', timestamp: '2:28 PM', isSent: false, isRead: true },
-            { id: '4', text: 'That sounds interesting! What kind of projects?', timestamp: '2:30 PM', isSent: true, isRead: false },
-        ],
-        '2': [
-            { id: '1', text: 'Thanks for helping me with the presentation!', timestamp: '1:10 PM', isSent: false, isRead: true },
-            { id: '2', text: 'No problem at all! Happy to help', timestamp: '1:12 PM', isSent: true, isRead: true },
-            { id: '3', text: 'Your tips really made a difference', timestamp: '1:15 PM', isSent: false, isRead: true },
-        ],
-        '3': [
-            { id: '1', text: 'See you tomorrow at the meeting', timestamp: '12:40 PM', isSent: false, isRead: true },
-            { id: '2', text: 'Perfect! Looking forward to it', timestamp: '12:45 PM', isSent: true, isRead: true },
-        ],
-        '4': [
-            { id: '1', text: 'The meeting was really productive today', timestamp: '11:25 AM', isSent: false, isRead: true },
-            { id: '2', text: 'I agree! Great discussion and decisions made', timestamp: '11:30 AM', isSent: true, isRead: true },
-        ],
-        '5': [
-            { id: '1', text: 'Can you send me the project files?', timestamp: '10:15 AM', isSent: false, isRead: true },
-            { id: '2', text: 'Sure! I\'ll send them over in a few minutes', timestamp: '10:20 AM', isSent: true, isRead: true },
-        ],
-        '6': [
-            { id: '1', text: 'Perfect! Let me know when you\'re ready', timestamp: '9:10 AM', isSent: false, isRead: true },
-            { id: '2', text: 'Will do! Thanks for your patience', timestamp: '9:15 AM', isSent: true, isRead: true },
-        ]
-    };
+    const { chatUsers, 
+        loadUser, 
+        checkUserHasMessages, 
+        addUserToChatStore, 
+        addInChatUserChatStore,
+        setUserOnlineStatus 
+    } = useUserChatStore();
+
+    const roomMessages = privateChatRoom ? getMessagesForRoom(privateChatRoom) : [];
+
+
+    const selectedChatUser = useMemo(() => {
+        if (!selectedChatUserId) return null;
+        return chatUsers.find(u => u.chatUserId === selectedChatUserId) || null;
+    }, [selectedChatUserId, chatUsers]);
+
+    
+    // ✅ Get unread messages from current sender
+    const unreadFromSender = unreadMessages.find(u => u.chatUserId === selectedChatUser?.chatUserId);
+    const unreadMessagesList = unreadFromSender?.unreadMessages || [];
+    
+
+    const sortedMessages = useMemo(() => {
+        // Combine room messages and unread messages
+        const allMessages = [...roomMessages, ...unreadMessagesList];
+        
+        // Remove duplicates based on messageId
+        const uniqueMessages = Array.from(
+            new Map(allMessages.map(msg => [msg.messageId, msg])).values()
+        );
+        
+        // Sort by timestamp (oldest first)
+        return uniqueMessages.sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return timeA - timeB;
+        });
+    }, [roomMessages, unreadMessagesList]);
+
+
 
     useEffect(() => {
-        if (selectedUser) {
-            setMessages(dummyMessages[selectedUser.id] || []);
+        if (!socket || !selectedChatUser || !user) return;
+
+        console.log("Initializing private chat", selectedChatUser.chatUserId);
+        
+        // Check user online status
+        socket.emit('check-user-online', { userId: selectedChatUser.chatUserId });
+
+        // Initialize private chat
+        socket.emit('init-private-chat', {
+            targetUserId: selectedChatUser.chatUserId
+        });
+
+        // Handle private chat started event
+        const handlePrivateChatStarted = (data: { roomId: string }) => {
+            console.log('Private chat started, room:', data.roomId);
+            setPrivateChatRoom(data.roomId);
+            socket.emit('accept-private-chat', { roomId: data.roomId });
+        };
+
+        // Handle private chat request event
+        const handlePrivateChatRequest = (data: { roomId: string }) => {
+            console.log('Private chat request received, room:', data.roomId);
+            setPrivateChatRoom(data.roomId);
+            socket.emit('accept-private-chat', { roomId: data.roomId });
+        };
+
+        // Register listeners
+        socket.on('private-chat-started', handlePrivateChatStarted);
+        socket.on('private-chat-request', handlePrivateChatRequest);
+
+        // Load history if room is available
+        if(privateChatRoom && !hasLoadedHistory){
+            loadMessages(privateChatRoom);
+            setHasLoadedHistory(true);
         }
-    }, [selectedUser]);
+
+        // Cleanup: Remove listeners and leave room
+        return () => {
+            socket.off('private-chat-started', handlePrivateChatStarted);
+            socket.off('private-chat-request', handlePrivateChatRequest);
+            
+            if (privateChatRoom) {
+                socket.emit('leave-private-chat', { roomId: privateChatRoom });
+                setPrivateChatRoom(null);
+            }
+        };
+    }, [socket, selectedChatUser, user, privateChatRoom, hasLoadedHistory, loadMessages, setPrivateChatRoom]);
+
+    useEffect(() => {
+        if (selectedChatUser && user?.id && privateChatRoom) {
+            markSenderAsRead(user.id, selectedChatUser.chatUserId);
+        }
+    }, [selectedChatUser, user?.id, privateChatRoom, markSenderAsRead]);
+ 
+
+    // Listen for new messages
+    useEffect(() => {
+        if (!socket || !privateChatRoom) return;
+
+        const handleNewMessage = (messageData: any) => {
+            const isMessageFromCurrentUser = messageData.userId === user?.id;
+            const sendToUserId = isMessageFromCurrentUser 
+                ? (selectedChatUser?.chatUserId || '') 
+                : (user?.id || '');
+            
+            addMessage({
+                id: messageData.id,
+                messageId: messageData.messageId,
+                text: messageData.text,
+                timestamp: messageData.timestamp,
+                userId: messageData.userId,
+                sendTo: sendToUserId,
+                isRead: true,
+                isSent: isMessageFromCurrentUser,
+                roomId: privateChatRoom,
+            });
+
+
+        };
+
+        socket.on('new-private-message', handleNewMessage);
+
+        return () => {
+            socket.off('new-private-message', handleNewMessage);
+        };
+    }, [socket, user, privateChatRoom, selectedChatUser, addMessage]);
+
+    // Typing indicator
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on('user-typing-indicator', (data: { userId: string; userName: string; isTyping: boolean }) => {
+            if (data.userId !== user?.id) {
+                if (data.isTyping) {
+                    setTypingUsers(prev => [...new Set([...prev, data.userName])]);
+                } else {
+                    setTypingUsers(prev => prev.filter(name => name !== data.userName));
+                }
+            }
+        });
+
+        return () => {
+            socket.off('user-typing-indicator');
+        };
+    }, [socket, user]);
+
+   
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [sortedMessages]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const handleSendMessage = () => {
-        if (newMessage.trim() && selectedUser) {
-            const message: Message = {
-                id: Date.now().toString(),
-                text: newMessage.trim(),
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                isSent: true,
-                isRead: false
-            };
-            setMessages([...messages, message]);
-            setNewMessage('');
+    const handleSendMessage = async () => {
+        if (!newMessage.trim() || !selectedChatUser || !socket) return;
+        if(selectedChatUser.lastMessage === null){
+            console.log("Adding user to chat store", selectedChatUser.chatUserId);
+
+            socket.emit('check-user-online', { userId: selectedChatUser.chatUserId });
+            addUserToChatStore({
+                userId: user?.id || '' ,
+                chatUserId: selectedChatUser.chatUserId,
+                chatUserName: selectedChatUser.chatUserName,
+                chatUserAvatar: selectedChatUser.chatUserAvatar,
+                lastMessage: newMessage.trim(),
+                isOnline: isUserOnline,
+                unreadCount: 0,
+                lastMessageTime: new Date().toISOString()
+            });
+            addInChatUserChatStore({
+                userId: selectedChatUser.chatUserId ,
+                chatUserId: user?.id || '',
+                chatUserName: profile?.name || '',
+                chatUserAvatar: profile?.photoURL?.toString() || '',
+                lastMessage: newMessage.trim(),
+                lastMessageTime: new Date().toISOString(),
+                isOnline: false,
+                unreadCount: 0
+                
+            });
         }
+
+
+         
+
+        const message: Message = {
+            text: newMessage.trim(),
+            userId: user?.id || '',
+            sendTo: selectedChatUser.chatUserId,
+            isRead: false,
+            isSent: true,
+            roomId: privateChatRoom || ''
+        };
+
+        // Add message to store (optimistic update)
+        addMessage({
+            ...message,
+            id: Date.now().toString(),
+            messageId: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+        });
+
+        // Save message to database
+        await saveMessageToDB({
+            ...message,
+            timestamp: new Date().toISOString(),
+        });
+
+        // Send message via socket
+
+
+
+        if(privateChatRoom && socket && selectedChatUser && isUserOnline){
+                        socket.emit('send-private-chat-message', {
+                            roomId: privateChatRoom,
+                            message: message.text,
+                            targetUserId: selectedChatUser.chatUserId
+                        });
+             }
+        setNewMessage('');
+        setIsUserTyping(false);
+        
+        // Stop typing indicator
+        socket.emit('private-chat-typing', {
+            roomId: privateChatRoom,
+            isTyping: false,
+            targetUserId: selectedChatUser.chatUserId
+        });
+    };
+
+    const handleTyping = () => {
+        if (!socket || !privateChatRoom || !selectedChatUser) return;
+
+        if (!isUserTyping) {
+            setIsUserTyping(true);
+            socket.emit('private-chat-typing', {
+                roomId: privateChatRoom,
+                isTyping: true,
+                targetUserId: selectedChatUser.chatUserId
+            });
+        }
+
+        // Clear existing timeout
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Set new timeout to stop typing
+        typingTimeoutRef.current = setTimeout(() => {
+            setIsUserTyping(false);
+            socket.emit('private-chat-typing', {
+                roomId: privateChatRoom,
+                isTyping: false,
+                targetUserId: selectedChatUser.chatUserId
+            });
+        }, 3000);
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage();
+        } else {
+            handleTyping();
         }
     };
 
-    if (!selectedUser) {
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleUserOnlineStatus = (data: { userId: string; isOnline: boolean; timestamp: string }) => {
+            console.log('User online status:', data);
+            setIsUserOnline(data.isOnline);
+        };
+
+        socket.on('user-online-status', handleUserOnlineStatus);
+
+        return () => {
+            socket.off('user-online-status', handleUserOnlineStatus);
+        };
+    }, [socket]);
+
+
+
+    if (!selectedChatUser) {
         return (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
                 <div className="text-center">
@@ -119,20 +365,23 @@ export default function ChatWindow({ selectedUser }: ChatWindowProps) {
                 <div className="flex items-center space-x-3">
                     <div className="relative">
                         <Image
-                            src={selectedUser.avatar}
-                            alt={selectedUser.name}
+                            src={selectedChatUser.chatUserAvatar || ''}
+                            alt={selectedChatUser.chatUserName}
                             width={40}
                             height={40}
                             className="rounded-full"
                         />
-                        {selectedUser.isOnline && (
+                        {isUserOnline && (
                             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        )}
+                        {!isConnected && (
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></div>
                         )}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900">{selectedUser.name}</h3>
+                        <h3 className="font-semibold text-gray-900">{selectedChatUser.chatUserName}</h3>
                         <p className="text-sm text-gray-500">
-                            {selectedUser.isOnline ? 'Online' : selectedUser.lastSeen || 'Offline'}
+                            {isUserOnline ? 'Online' : 'Offline'}
                         </p>
                     </div>
                 </div>
@@ -141,11 +390,30 @@ export default function ChatWindow({ selectedUser }: ChatWindowProps) {
                 </button>
             </div>
 
+            {/* Unread Messages Banner */}
+            {unreadFromSender && unreadFromSender.unreadCount > 0 && (
+                <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-center">
+                    <p className="text-sm text-blue-700 font-medium">
+                        {unreadFromSender.unreadCount} new {unreadFromSender.unreadCount === 1 ? 'message' : 'messages'}
+                    </p>
+                    {unreadFromSender?.unreadMessages && unreadFromSender.unreadMessages.length > 0 && (
+                        <p className="text-xs text-blue-500 mt-1">
+                            Latest: {unreadFromSender.unreadMessages[0].text}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto px-4 py-4">
-                {messages.map((message) => (
-                    <MessageBubble key={message.id} message={message} />
+                {sortedMessages.map((message) => (
+                    <MessageBubble key={message.id || message.messageId} message={message} />
                 ))}
+                {typingUsers.length > 0 && (
+                    <div className="text-sm text-gray-500 italic mb-4">
+                        {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                    </div>
+                )}
                 <div ref={messagesEndRef} />
             </div>
 
@@ -159,10 +427,14 @@ export default function ChatWindow({ selectedUser }: ChatWindowProps) {
                         <input
                             type="text"
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
+                            onChange={(e) => {
+                                setNewMessage(e.target.value);
+                                handleTyping();
+                            }}
                             onKeyPress={handleKeyPress}
                             placeholder="Type a message..."
                             className="w-full px-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            disabled={!isConnected}
                         />
                         <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors">
                             <FaSmile className="text-lg" />
@@ -170,7 +442,7 @@ export default function ChatWindow({ selectedUser }: ChatWindowProps) {
                     </div>
                     <button
                         onClick={handleSendMessage}
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || !isConnected}
                         className="bg-teal-500 text-white p-2 rounded-full hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <FaPaperPlane className="text-lg" />

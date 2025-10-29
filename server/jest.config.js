@@ -24,7 +24,9 @@ export default {
       clearMocks: true,
       
       // Verbose output
-      verbose: true
+      verbose: true,
+
+      
     
 
 

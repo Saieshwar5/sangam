@@ -1,7 +1,9 @@
 // server/src/handlers/socketHandlers.js
-import { getUsersInRoom } from '../utils/socketUtils.js';
-
+import { getUsersInRoom } from '../util/socketUtils.js';
+import { setupPrivateChatHandlers } from './privateChatHandlers.js';
 export function setupSocketHandlers(io) {
+
+    setupPrivateChatHandlers(io);
     io.on('connection', (socket) => {
         console.log(`✅ User ${socket.userEmail} connected with socket ${socket.id}`);
 

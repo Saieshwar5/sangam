@@ -1,10 +1,12 @@
 import express from 'express';
 import http from 'http';
-import { Server } from 'socket.io';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+
+
+import { socketService } from './src/services/socketService.js';
 
 import profileRouter from './src/routes/profile/profile.js';
 import groupsRouter from './src/routes/groups/createGroups.js';
@@ -17,6 +19,8 @@ import loadGroupsRouter from './src/routes/groups/loadGroups.js';
 
 import loadMembersRouter from './src/routes/members/loadMembers.js';
 import loadPostsRouter from './src/routes/posts/loadPosts.js';
+import messageRoutes from './src/routes/messages/messageRoutes.js';
+import chatUsersRoutes from './src/routes/chatUsers/chatUsers.js';
 
 // ✅ Import model associations and sync function
 import { syncModels } from './src/models/associations.js';
@@ -51,12 +55,15 @@ app.use('/api', joinGroupRouter);
 app.use('/api', loadGroupsRouter);
 app.use('/api', loadMembersRouter);
 app.use('/api', loadPostsRouter);
+app.use('/api', messageRoutes);
+app.use('/api', chatUsersRoutes);
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
 // ✅ Sync database models before starting server
 syncModels().then(() => {
+    socketService.initialize(server);
     server.listen(process.env.PORT, () => {
         console.log(`🚀 Server is running on port ${process.env.PORT}`);
         console.log(`🔌 Socket.IO server is ready for connections`);
