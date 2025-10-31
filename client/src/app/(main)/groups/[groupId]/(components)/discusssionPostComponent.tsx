@@ -13,6 +13,7 @@ interface PostComponentProps {
     updatedAt: string;
     postIsActive: boolean;
     postIsDeleted: boolean;
+    involve?: boolean;
 }
 
 export default function DiscussionPostComponent({
@@ -25,6 +26,7 @@ export default function DiscussionPostComponent({
     updatedAt,
     postIsActive,
     postIsDeleted,
+    involve
 }: PostComponentProps) {
     const [isLiked, setIsLiked] = useState(false);
     const [isClickedOnComment, setIsClickedOnComment] = useState(false);
@@ -105,7 +107,8 @@ export default function DiscussionPostComponent({
             </div>
 
             {/* 📋 FOOTER SECTION - Comments, Likes, Actions */}
-            <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
+            <div className={`bg-gray-50 border-t border-gray-200 px-6 py-4 ${involve ? 'hidden' : ''}`}
+            >
                 <div className="flex items-center justify-between">
                     {/* Left side - Interaction buttons */}
                     <div className="flex items-center gap-4">

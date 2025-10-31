@@ -1,79 +1,70 @@
 "use client"
 
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useParams, useRouter} from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
 import { useUserGroupPostsStore } from '@/app/context/userGroupPostsStore';
 import { useUserGroupsStore } from '@/app/context/userGroupsStore';
+import { useCommentsStore } from '@/app/context/commentsStore';
+import { useUser } from '@/hooks/useAuth';
 import DiscussionPost from '../(components)/discusssionPostComponent';
 import PollPostComponent from '../(components)/pollPostcomponent';
 import VolunteerPostComponent from '../(components)/invitationPostComponent';
+import CommentsSection from './(components)/commentsSection';
 
 export default function PostDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const user = useUser();
     const { userGroupPosts, loadUserGroupPosts } = useUserGroupPostsStore();
     const { userCreatedGroups, userFollowedGroups } = useUserGroupsStore();
+    const { 
+        getCommentsForPost, 
+        loadCommentsForPost, 
+        addCommentToPost, 
+        addReplyToComment 
+    } = useCommentsStore();
     
-    const [post, setPost] = useState<any>(null);
-    const [group, setGroup] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     
     const groupId = params.groupId as string;
     const postId = params['post-id'] as string;
 
-    useEffect(() => {
-        const loadPost = async () => {
-            // Check if group exists
-            const createdGroup = userCreatedGroups.find(g => g.groupId === groupId);
-            const followedGroup = userFollowedGroups.find(g => g.groupId === groupId);
-            const foundGroup = createdGroup || followedGroup;
-            
-            if (!foundGroup) {
-                router.push('/groups');
-                return;
-            }
-            
-            setGroup(foundGroup);
-            
-            // Check if posts are already loaded
-            if (userGroupPosts.length === 0) {
-                await loadUserGroupPosts(groupId);
-            }
-            
-            // Find the post
-            const foundPost = userGroupPosts.find(p => p.postId === postId);
-            
-            // If not found, reload posts
-            if (!foundPost) {
-                const loaded = await loadUserGroupPosts(groupId);
-                if (loaded) {
-                    const postAfterReload = useUserGroupPostsStore.getState().userGroupPosts.find(p => p.postId === postId);
-                    if (postAfterReload) {
-                        setPost(postAfterReload);
-                    } else {
-                        router.push(`/groups/${groupId}`);
-                    }
-                }
-            } else {
-                setPost(foundPost);
-            }
-            
-            setLoading(false);
-        };
-        
-        loadPost();
-    }, [groupId, postId, router]);
+    // Get comments from store
+    const commentsByPost = useCommentsStore((state) => state.commentsByPost);
+const comments = useMemo(() => commentsByPost[postId] || [], [commentsByPost, postId]);
 
-    useEffect(() => {
-        // Update post if it changes in the store
-        const foundPost = userGroupPosts.find(p => p.postId === postId);
-        if (foundPost) {
-            setPost(foundPost);
+const post = useMemo(() => {
+        return userGroupPosts.find(p => p.postId === postId);
+      }, [userGroupPosts, postId]);
+
+      useEffect(() => {
+        if(post){
+            setLoading(false);
+            // Load comments for this post
+            loadCommentsForPost(postId);
         }
-    }, [userGroupPosts, postId]);
+      }, [post, postId, loadCommentsForPost]);
+
+   
 
     const handleBack = () => {
         router.back();
+    };
+
+    const handleAddComment = async (commentText: string) => {
+        const userId = user?.id || '';
+        const userName = user?.email?.split('@')[0] || 'Anonymous';
+        
+        await addCommentToPost(postId, commentText, userId, userName);
+        console.log('New comment added');
+    };
+
+    const handleReplyToComment = async (parentCommentId: string, replyText: string) => {
+        const userId = user?.id || '';
+        const userName = user?.email?.split('@')[0] || 'Anonymous';
+        
+        await addReplyToComment(postId, parentCommentId, replyText, userId, userName);
+        console.log('Reply added to comment:', parentCommentId);
     };
 
     if (loading) {
@@ -87,7 +78,7 @@ export default function PostDetailPage() {
         );
     }
 
-    if (!post || !group) {
+    if (!post) {
         return (
             <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center">
@@ -103,6 +94,8 @@ export default function PostDetailPage() {
         );
     }
 
+
+    
     // Render appropriate post component
     const renderPost = () => {
         const commonProps = {
@@ -115,40 +108,34 @@ export default function PostDetailPage() {
             updatedAt: post.updatedAt,
             postIsActive: post.postIsActive,
             postIsDeleted: post.postIsDeleted,
+            involve: true,
         };
 
         if (post.postType === 'Discussion') {
             return <DiscussionPost {...commonProps} />;
         }
         
-        if (post.postType === 'Poll') {
-            return (
-                <PollPostComponent 
-                    {...commonProps}
-                    pollData={post.pollData}
-                    userSelectedOption={""}
-                    userVoted={false}
-                />
-            );
-        }
+       
         
-        if (['Call for Volunteers', 'Invitation', 'Event'].includes(post.postType)) {
-            return (
-                <VolunteerPostComponent 
-                    {...commonProps}
-                    eventData={post.eventData}
-                />
-            );
-        }
+        
         
         return <DiscussionPost {...commonProps} />;
     };
 
+
+     
     return (
         <div className="w-full h-full flex flex-col bg-gray-50">
-            {/* Header with Back Button */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-                <button
+            
+
+            
+            <div className="flex-1 overflow-y-auto ">
+                       
+                <div className="max-w-4xl mx-auto">
+                    {/* Sticky post container - stays at top when scrolling */}
+                    <div className="sticky top-0 z-10 bg-gray-50 pb-4">
+
+                    <button
                     onClick={handleBack}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label="Go back"
@@ -157,16 +144,18 @@ export default function PostDetailPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </button>
-                <div>
-                    <h1 className="text-xl font-semibold text-gray-800">Post Details</h1>
-                    <p className="text-sm text-gray-500">{group.groupName}</p>
-                </div>
-            </div>
-
-            {/* Post Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-4xl mx-auto">
-                    {renderPost()}
+                        {renderPost()}
+                    </div>
+                    
+                    {/* comments section */}
+                    <div className="px-4">
+                        <CommentsSection
+                            postId={postId}
+                            comments={comments}
+                            onAddComment={handleAddComment}
+                            onReplyToComment={handleReplyToComment}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

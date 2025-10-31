@@ -1,9 +1,11 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser } from '@/hooks/useAuth';
+import { useUserGroupPostsStore } from '@/app/context/userGroupPostsStore';
 
 interface PollOption {
-    id: string;
+    id: number;
     text: string;
     votes: number;
     percentage: number;
@@ -15,6 +17,7 @@ interface PollData {
     allowMultipleVotes: boolean;
 }
 interface PollPostComponentProps {
+    postId: string;
     postType: string;
     postContent: string; // This will be the poll question
     postCreator: string;
@@ -24,11 +27,16 @@ interface PollPostComponentProps {
     postIsActive: boolean;
     postIsDeleted: boolean;
     pollData?: PollData;
-    userSelectedOption: string;
-    userVoted: boolean;
+    
+}
+
+interface SelectedOption {
+    id: number;
+    text: string;
 }
 
 export default function PollPostComponent({
+    postId,
     postType,
     postContent,
     postCreator,
@@ -38,33 +46,29 @@ export default function PollPostComponent({
     postIsActive,
     postIsDeleted,
     pollData,
-    userSelectedOption,
-    userVoted,
-    
-
-    
+   
 }: PollPostComponentProps) {
-    
-    const [selectedOptions, setSelectedOptions] = useState<string[]>(
-        userSelectedOption ? [userSelectedOption] : []
-    );
-    const [hasVoted, setHasVoted] = useState(userVoted);
-    const [showResults, setShowResults] = useState(userVoted || pollData?.pollOptions.some(option => option.votes > 0));
-
+    const user = useUser();
+    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+    const [hasVoted, setHasVoted] = useState(false);
+    const [showResults, setShowResults] = useState(pollData?.pollOptions.some(option => option.votes > 0));
+    const { voteOnPollPost, getUserPollsParticipated, userPollsParticipated} = useUserGroupPostsStore();
     // Calculate if poll has ended
     const isPollEnded = pollData?.pollEndDate ? new Date(pollData?.pollEndDate) < new Date() : false;
 
-    const handleOptionSelect = (optionId: string) => {
+    useEffect(() => {
+        const isVoted = userPollsParticipated.some(p => p.pollPostId === postId);
+        setHasVoted(isVoted);
+      }, [userPollsParticipated, postId]);
+    const handleOptionSelect = (optionId: number) => {
         if (hasVoted || isPollEnded) return;
 
+        const optionText = pollData?.pollOptions.find(option => option.id === optionId)?.text;
+
         if (pollData?.allowMultipleVotes) {
-            setSelectedOptions(prev => 
-                prev.includes(optionId) 
-                    ? prev.filter(id => id !== optionId)
-                    : [...prev, optionId]
-            );
+            setSelectedOptions(prev => [...prev, { id: optionId, text: optionText ?? '' }]);
         } else {
-            setSelectedOptions([optionId]);
+            setSelectedOptions([{ id: optionId, text: optionText ?? '' }]);
         }
     };
 
@@ -74,14 +78,23 @@ export default function PollPostComponent({
         try {
             // TODO: Implement API call to submit vote
             console.log('Voting for options:', selectedOptions);
-            
-            setHasVoted(true);
-            setShowResults(true);
-            
-            // Here you would typically call your API to submit the vote
-            // await submitPollVote(postId, selectedOptions);
-            
-        } catch (error) {
+            const voteData = {
+                pollPostId: postId,
+                userId: user?.id,
+                selectedOptions: selectedOptions,
+            };
+          
+            console.log("voteData ******************", voteData);
+  
+                const response = await voteOnPollPost(voteData, postId);
+                if(response.success){
+                    setHasVoted(true);
+                    setShowResults(true);
+                }
+                else{
+                    console.error('Error submitting vote:', response.message);
+                }
+            } catch (error) {
             console.error('Error submitting vote:', error);
         }
     };
@@ -152,7 +165,7 @@ export default function PollPostComponent({
                 {/* Poll Options */}
                 <div className="space-y-3">
                     {pollData?.pollOptions.map((option, index) => {
-                        const isSelected = selectedOptions.includes(option.id);
+                        const isSelected = selectedOptions.some(selectedOption => selectedOption.id == option.id);
                         const isWinning = option.percentage === Math.max(...pollData?.pollOptions.map(o => o.percentage) || []) && option.percentage > 0;
                         
                         return (
@@ -261,7 +274,7 @@ export default function PollPostComponent({
 
             {/* 📋 FOOTER SECTION - Comments, Likes, Actions */}
             <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between hidden">
                     {/* Left side - Interaction buttons */}
                     <div className="flex items-center gap-4">
                         <button className="flex items-center gap-1 text-gray-600 hover:text-purple-600 transition-colors">

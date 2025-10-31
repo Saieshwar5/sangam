@@ -14,6 +14,7 @@ const groupPosts = sequelize.define('groupPosts', {
     postId: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
     },
     postCreator: {
         type: DataTypes.STRING,

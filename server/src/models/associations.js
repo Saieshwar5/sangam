@@ -6,6 +6,9 @@ import GroupPosts from './groupPosts.js';
 import UsersMessages from './usersMessagesOrm.js';
 import { DataTypes } from 'sequelize';
 import ChatUser from './chatUsersOrm.js';
+import PollPostVote from './pollsPostOrm.js';
+import UsersInvitation from './usersInvitationOrm.js';
+import Comment from './commentsOrm.js';
 
 
 
@@ -158,7 +161,75 @@ Communities.hasMany(UserGroups, {
         onUpdate: 'CASCADE',
     });
 
+    // ================================
+    // GroupPosts ↔ PollPostVote (One-to-Many) and User ↔ PollPostVote (One-to-Many)
+    // ================================
+    GroupPosts.hasMany(PollPostVote, {
+        foreignKey: 'pollPostId',
+        sourceKey: 'postId',
+        as: 'votes',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
 
+    PollPostVote.belongsTo(GroupPosts, {
+        foreignKey: 'pollPostId',
+        targetKey: 'postId',
+        as: 'pollPost',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    User.hasMany(PollPostVote, {
+        foreignKey: 'userId',
+        sourceKey: 'userId',
+        as: 'pollVotes',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    PollPostVote.belongsTo(User, {
+        foreignKey: 'userId',
+        targetKey: 'userId',
+        as: 'voter',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+    // ================================
+    // UsersInvitation ↔ User (One-to-Many)
+    // ================================
+    User.hasMany(UsersInvitation, {
+        foreignKey: 'userId',
+        sourceKey: 'userId',
+        as: 'invitations',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+    UsersInvitation.belongsTo(User, {
+        foreignKey: 'userId',
+        targetKey: 'userId',
+        as: 'invitee',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    // ================================
+    // UsersInvitation ↔ GroupPosts (One-to-Many)
+    // ================================
+    GroupPosts.hasMany(UsersInvitation, {
+        foreignKey: 'eventPostId',
+        sourceKey: 'postId',
+        as: 'invitations',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+    UsersInvitation.belongsTo(GroupPosts, {
+        foreignKey: 'eventPostId',
+        targetKey: 'postId',
+        as: 'eventPost',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
 // ================================
 // UserGroups ↔ User (for accessing user data from UserGroups)
 // ================================
@@ -174,6 +245,63 @@ User.hasMany(UserGroups, {
     foreignKey: 'userId',
     sourceKey: 'userId',
     as: 'groupMemberships',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// ================================
+// Comment ↔ GroupPosts (Many-to-One)
+// ================================
+GroupPosts.hasMany(Comment, {
+    foreignKey: 'postId',
+    sourceKey: 'postId',
+    as: 'comments',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+Comment.belongsTo(GroupPosts, {
+    foreignKey: 'postId',
+    targetKey: 'postId',
+    as: 'post',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// ================================
+// Comment ↔ User (Many-to-One)
+// ================================
+User.hasMany(Comment, {
+    foreignKey: 'userId',
+    sourceKey: 'userId',
+    as: 'comments',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+Comment.belongsTo(User, {
+    foreignKey: 'userId',
+    targetKey: 'userId',
+    as: 'author',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+// ================================
+// Comment ↔ Comment (Self-referencing for nested replies)
+// ================================
+Comment.hasMany(Comment, {
+    foreignKey: 'parentCommentId',
+    sourceKey: 'commentId',
+    as: 'replies',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+Comment.belongsTo(Comment, {
+    foreignKey: 'parentCommentId',
+    targetKey: 'commentId',
+    as: 'parent',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 });
@@ -304,11 +432,20 @@ export async function syncModels() {
         await GroupPosts.sync({ alter: false });
         console.log('✅ GroupPosts model synchronized');
         
+        await PollPostVote.sync({ alter: false });
+        console.log('✅ PollPostVote model synchronized');
+        
+        await UsersInvitation.sync({ alter: false });
+        console.log('✅ UsersInvitation model synchronized');
+        
         await UsersMessages.sync({ alter: false });
         console.log('✅ UsersMessages model synchronized');
         
         await ChatUser.sync({ alter: false });
         console.log('✅ ChatUsers model synchronized');
+        
+        await Comment.sync({ alter: false });
+        console.log('✅ Comment model synchronized');
         
         console.log('✅ All models synchronized successfully');
     } catch (error) {
@@ -317,4 +454,4 @@ export async function syncModels() {
     }
 }
 
-export { User, Profile, Communities, UserGroups, GroupPosts, UsersMessages, ChatUser };
+export { User, Profile, Communities, UserGroups, GroupPosts, UsersMessages, ChatUser, UsersInvitation, Comment };

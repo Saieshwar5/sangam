@@ -33,6 +33,10 @@ export const profileName = () => {
     return profile?.name;
 }
 
+export const useProfileLoader = () => {
+    return useUserProfileStore((state) => state.loadProfile);
+}
+
    
     
     

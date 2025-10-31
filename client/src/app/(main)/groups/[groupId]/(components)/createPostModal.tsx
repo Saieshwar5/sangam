@@ -44,12 +44,22 @@ interface Attachment {
 }
 
 interface PollOption {
-    id: string;
+    id: number;
     text: string;
     votes: number;
     percentage: number;
 }
+const newPollOption = (id: number): PollOption => ({
+    id: id,
+    text: '',
+    votes: 0,
+    percentage: 0
+  });
 
+  let minimumPollOptions = 2;
+  
+
+  
 export default function CreatePostModal({ isOpen, onClose, groupId, groupName }: CreatePostModalProps) {
     const { setUserGroupPosts, userGroupPosts, error, success, isUserGroupPostsLoaded } = useGroupPosts();
     const user = useUser();
@@ -60,7 +70,7 @@ export default function CreatePostModal({ isOpen, onClose, groupId, groupName }:
     const [postType, setPostType] = useState('Discussion');
     const [urlInput, setUrlInput] = useState('');
     const [showUrlInput, setShowUrlInput] = useState(false);
-    const [pollOptions, setPollOptions] = useState<PollOption[]>([]);
+    const [pollOptions, setPollOptions] = useState<PollOption[]>([newPollOption(1), newPollOption(2)]);
     const [pollEndDate, setPollEndDate] = useState('');
     const [allowMultipleVotes, setAllowMultipleVotes] = useState(false);
     const [eventAddress, setEventAddress] = useState('');
@@ -68,7 +78,11 @@ export default function CreatePostModal({ isOpen, onClose, groupId, groupName }:
     const [eventDate, setEventDate] = useState('');
     const [eventTime, setEventTime] = useState('');
     const [eventContactInfo, setEventContactInfo] = useState('');
+    let minimumPollOptions = 2;
 
+    const addPollOption = () => {
+        setPollOptions(prev => [...prev, newPollOption(prev.length + 1)]);
+      };
 
     useEffect(() => {
         if(success) {
@@ -76,9 +90,10 @@ export default function CreatePostModal({ isOpen, onClose, groupId, groupName }:
              setPostContent('');
              setAttachments([]);
              setPollOptions([
-                 { id: '1', text: '', votes: 0, percentage: 0 },
-                 { id: '2', text: '', votes: 0, percentage: 0 }
+                 newPollOption(1),
+                 newPollOption(2)
              ]);
+             minimumPollOptions = 2;
              setPollEndDate('');
              setAllowMultipleVotes(false);
              setEventAddress('');
@@ -164,6 +179,7 @@ export default function CreatePostModal({ isOpen, onClose, groupId, groupName }:
                         pollEndDate: pollEndDate,
                         allowMultipleVotes: allowMultipleVotes
                     };
+                    console.log('pollData ******************', pollData);
                     formData.append('pollData', JSON.stringify(pollData));
                     break;
                     
@@ -309,15 +325,7 @@ export default function CreatePostModal({ isOpen, onClose, groupId, groupName }:
                                 <button 
                                     type="button"
                                     className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2" 
-                                    onClick={() => setPollOptions(prev => [
-                                        ...prev, 
-                                        { 
-                                            id: Date.now().toString(), 
-                                            text: '', 
-                                            votes: 0, 
-                                            percentage: 0 
-                                        }
-                                    ])}
+                                    onClick={addPollOption}
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

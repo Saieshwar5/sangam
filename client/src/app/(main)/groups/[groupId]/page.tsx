@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useUserGroupsStore } from '@/app/context/userGroupsStore';
 import { useAuth } from '@/hooks/useAuth';
 import ChatPageHeader from './(components)/chatPageHeader';
@@ -14,26 +14,25 @@ export default function GroupDetailPage() {
     const { user } = useAuth();
     const { userCreatedGroups, userFollowedGroups } = useUserGroupsStore();
     
-    const [group, setGroup] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const groupId = params.groupId as string;
 
-    useEffect(() => {
+    // Derive group from stores using useMemo
+    const group = useMemo(() => {
         const createdGroup = userCreatedGroups.find(g => g.groupId === groupId);
         const followedGroup = userFollowedGroups.find(g => g.groupId === groupId);
-        
-        const foundGroup = createdGroup || followedGroup;
-        
-        if (foundGroup) {
-            setGroup(foundGroup);
-        } else {
+        return createdGroup || followedGroup || null;
+    }, [groupId, userCreatedGroups, userFollowedGroups]);
+
+    // Handle side effects (navigation, loading state)
+    useEffect(() => {
+        if (!group) {
             router.push('/groups');
         }
-        
         setLoading(false);
-    }, [groupId, userCreatedGroups, userFollowedGroups, router]);
+    }, [group, router]);
 
     const handleBack = () => {
         router.back();
@@ -45,7 +44,9 @@ export default function GroupDetailPage() {
 
     const handleHeaderClick = () => {
         console.log('Opening group info');
-        router.push(`/${group.groupId}`);
+        if (group) {
+            router.push(`/${group.groupId}`);
+        }
     };
 
     if (loading) {

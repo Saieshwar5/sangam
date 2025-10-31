@@ -21,6 +21,7 @@ import loadMembersRouter from './src/routes/members/loadMembers.js';
 import loadPostsRouter from './src/routes/posts/loadPosts.js';
 import messageRoutes from './src/routes/messages/messageRoutes.js';
 import chatUsersRoutes from './src/routes/chatUsers/chatUsers.js';
+import commentsRouter from './src/routes/comments/comments.js';
 
 // ✅ Import model associations and sync function
 import { syncModels } from './src/models/associations.js';
@@ -57,6 +58,7 @@ app.use('/api', loadMembersRouter);
 app.use('/api', loadPostsRouter);
 app.use('/api', messageRoutes);
 app.use('/api', chatUsersRoutes);
+app.use('/api', commentsRouter);
 app.get('/', (req, res) => {
     res.send('Hello World');
 });

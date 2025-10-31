@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useUserAuthStore } from '@/app/context/userAuthStore';
 import { joinGroup } from '@/hooks/userGroups';
+import { useProfileLoader } from '@/hooks/useProfile';
+
+
+
+
+
+
+
+
 
 export default function SignInPage() {
   const router = useRouter();
@@ -14,7 +23,8 @@ export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const joinGroupHook = joinGroup();
-  const { signInWithEmail, loading, error, success,setError, setSuccess, setLoading, isAuthenticated} = useUserAuthStore();
+  const { signInWithEmail, loading, error, success,setError, setSuccess, setLoading, isAuthenticated ,user} = useUserAuthStore();
+  const loadProfile = useProfileLoader();
 
   useEffect(() => {
 
@@ -25,6 +35,12 @@ export default function SignInPage() {
   
           setLoading(false);
           useUserAuthStore.getState().clearMessages();
+
+        
+          if(user){
+            console.log("Loading profile for user: ", user.id);
+            loadProfile(user.id);
+          }
 
            if(groupId && redirect === 'join'){
             handleJoinGroup();
