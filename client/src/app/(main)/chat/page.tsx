@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import UserList from './components/UserList';
 import ChatWindow from './components/ChatWindow';
 import { useSearchParams } from 'next/navigation';
@@ -11,7 +11,7 @@ import { useUser } from '@/hooks/useAuth';
 import { useMessageStore } from '@/app/context/userMessageStore';
 
 
-export default function ChatPage() {
+function ChatForm() {
     const [selectedChatUser, setSelectedChatUser] = useState<string | null>(null);
     const [userLoaded, setUserLoaded] = useState(false)
     const searchParams = useSearchParams();
@@ -74,4 +74,12 @@ export default function ChatPage() {
             <ChatWindow selectedChatUser={selectedChatUser} />
         </div>
     );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChatForm />
+    </Suspense>
+  );
 }

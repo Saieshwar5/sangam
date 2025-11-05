@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { useSearchParams } from "next/navigation"
 import { useUserGroupsStore } from "@/app/context/userGroupsStore"
@@ -75,6 +75,7 @@ export default function GroupsList({signedIn}: {signedIn: boolean}) {
     }
 
     return (
+        <Suspense fallback={<div>Loading...</div>}>
         <div className="w-full h-full bg-teal-100 flex flex-col pt-1.5 pr-1.5 gap-1.5 border-1 border-l-0 border-t-0 border-black">
             <div className="w-full h-12 bg-white rounded-lg gap-1.5 border-1 border-black flex items-center justify-center">
                 <input type="text" placeholder="Search groups" className="w-full h-full outline-none text-sm px-2" />
@@ -179,5 +180,6 @@ export default function GroupsList({signedIn}: {signedIn: boolean}) {
                 </button>
             </div>
         </div>
+        </Suspense>
     )
 }

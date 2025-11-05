@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useUser } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useUserProfileStore } from "@/app/context/userProfileStore";
-import { joinGroup } from "@/hooks/userGroups";
+import { useJoinGroup } from "@/hooks/userGroups";
 
 
 type ProfileData = {
@@ -18,8 +18,8 @@ type ProfileData = {
   photoURL: File | null;
 };
 
-export default function ProfilePage() {
-  const joinGroupHook = joinGroup();
+function ProfileForm() {
+  const joinGroupHook = useJoinGroup();
   const user  = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -434,5 +434,14 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProfileForm />
+    </Suspense>
   );
 }

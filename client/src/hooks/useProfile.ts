@@ -23,20 +23,20 @@ export const useProfileState = () => {
         }));
     }
 
-    export const isProfileLoaded = () => {
+    export const useIsProfileLoaded = () => {
         return useUserProfileStore((state) => state.isProfileLoaded);
     }
-
-
-export const profileName = () => {
-    const { profile } = useUserProfileStore();
-    return profile?.name;
-}
-
-export const useProfileLoader = () => {
-    return useUserProfileStore((state) => state.loadProfile);
-}
-
+    
+    // ✅ Converted to custom hook (starts with "use")
+    export const useProfileName = () => {
+        const { profile } = useUserProfileStore();
+        return profile?.name;
+    }
+    
+    // ✅ Already a hook - no changes needed
+    export const useProfileLoader = () => {
+        return useUserProfileStore((state) => state.loadProfile);
+    }
    
     
     

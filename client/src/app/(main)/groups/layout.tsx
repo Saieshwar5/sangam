@@ -4,12 +4,13 @@
 
 import GroupsList from "@/app/ui_components/groupsList"
 
+import { Suspense } from "react"
 
 import { useSearchParams } from "next/navigation"
 
 
 
-export default function GroupsLayout({ children }: { children: React.ReactNode }) {
+function GroupsLayoutForm({ children }: { children: React.ReactNode }) {
     const searchParams = useSearchParams()
     const signedIn = searchParams.get('signedIn')
 
@@ -23,4 +24,12 @@ export default function GroupsLayout({ children }: { children: React.ReactNode }
               </div>
         </div>
     )
+}
+
+export default function GroupsLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GroupsLayoutForm children={children} />
+    </Suspense>
+  );
 }

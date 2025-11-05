@@ -5,25 +5,25 @@ export const useUserGroups = () => {
     return { userFollowedGroups, userCreatedGroups, error, success, isUserFollowedGroupsLoaded, isUserCreatedGroupsLoaded, isUserGroupsLoaded, createGroup, setError, setSuccess, setIsUserFollowedGroupsLoaded, setIsUserCreatedGroupsLoaded, setIsUserGroupsLoaded, clearUserGroups };
 }
 
-export const createGroup = (group: FormData) => {
+export const useCreateGroup = () => {
     return useUserGroupsStore((state) => state.createGroup);
 }
 
 
-export const clearUserGroups = () => {
+export const useClearUserGroups = () => {
     return useUserGroupsStore((state) => state.clearUserGroups);
 }
 
-export const joinGroup = () => {
+export const useJoinGroup = () => {
     return useUserGroupsStore((state) => state.joinGroup);
 }
 
-export const leaveGroup = (groupId: string) => {
+export const useLeaveGroup = () => {
     return useUserGroupsStore((state) => state.leaveGroup);
 }
 
 
 
-export const unfollowGroup = (groupId: string) => {
+export const useUnfollowGroup = () => {
     return useUserGroupsStore((state) => state.unfollowGroup);
 }

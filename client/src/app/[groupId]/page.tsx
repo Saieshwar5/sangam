@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useUserGroupsStore } from '@/app/context/userGroupsStore';
 import { useAuth } from '@/hooks/useAuth';
-import { joinGroup } from '@/hooks/userGroups';
+import { useJoinGroup } from '@/hooks/userGroups';
 import { MdModeEditOutline, MdLocationOn } from "react-icons/md";
 import { FaUsers, FaImages } from "react-icons/fa";
 import { loadGroupInfoApi } from '@/api/groupsApis';
@@ -18,7 +18,7 @@ import UserCard from '@/app/ui_components/userCard';
 
 
 export default function GroupDetailPage() {
-    const joinGroupHook = joinGroup();
+    const joinGroupHook = useJoinGroup();
     const params = useParams();
     const router = useRouter();
     const { user } = useAuth();

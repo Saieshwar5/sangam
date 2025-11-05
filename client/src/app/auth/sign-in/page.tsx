@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useUserAuthStore } from '@/app/context/userAuthStore';
-import { joinGroup } from '@/hooks/userGroups';
+import { useJoinGroup } from '@/hooks/userGroups';
 import { useProfileLoader } from '@/hooks/useProfile';
 
 
@@ -14,15 +14,14 @@ import { useProfileLoader } from '@/hooks/useProfile';
 
 
 
-
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId');
   const redirect = searchParams.get('redirect');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const joinGroupHook = joinGroup();
+  const joinGroupHook = useJoinGroup();
   const { signInWithEmail, loading, error, success,setError, setSuccess, setLoading, isAuthenticated ,user} = useUserAuthStore();
   const loadProfile = useProfileLoader();
 
@@ -127,6 +126,7 @@ export default function SignInPage() {
 
 
   return (
+  
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4 py-8">
       <div className="w-full max-w-md">
         {/* Header */}
@@ -251,5 +251,14 @@ export default function SignInPage() {
         </p>
       </div>
     </div>
+
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInForm />
+    </Suspense>
   );
 }

@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useUserAuthStore } from '@/app/context/userAuthStore';
 
-export default function SignUpPage() {
+function SignUpForm() {
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId');
   const redirect = searchParams.get('redirect');
@@ -101,6 +101,7 @@ export default function SignUpPage() {
 
 
   return (
+
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4 py-8">
       <div className="w-full max-w-md">
         {/* Header */}
@@ -245,5 +246,13 @@ export default function SignUpPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignUpForm />
+    </Suspense>
   );
 }

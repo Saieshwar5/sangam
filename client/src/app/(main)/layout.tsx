@@ -2,8 +2,7 @@
 
 import { useEffect } from "react"
 
-import { useSearchParams } from "next/navigation"
-import { useRouter } from "next/navigation"
+
 import { SocketProvider } from "../context/socketContext";
 
 import styles from "./mainLayout.module.css"

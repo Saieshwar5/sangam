@@ -5,24 +5,24 @@ export const useGroupPosts = () => {
     return { userGroupPosts, error, success, isUserGroupPostsLoaded, setUserGroupPosts, setError, setSuccess, setIsUserGroupPostsLoaded, clearUserGroupPosts };
 }
 
-export const postInGroup = ()=>
+export const usePostInGroup = ()=>
 {
     return useUserGroupPostsStore((state) => state.setUserGroupPosts);
 }
 
 
-export const getUserGroupPosts = ()=>
+export const useGetUserGroupPosts = ()=>
 {
     return useUserGroupPostsStore((state) => state.userGroupPosts);
 }
 
 
-export const clearUserGroupPosts = ()=>
+export const useClearUserGroupPosts = ()=>
 {
     return useUserGroupPostsStore((state) => state.clearUserGroupPosts);
 }
 
-export const loadUserGroupPosts = (groupId: string)=>
+export const useLoadUserGroupPosts = (groupId: string)=>
 {
     return useUserGroupPostsStore((state) => state.loadUserGroupPosts(groupId));
 }

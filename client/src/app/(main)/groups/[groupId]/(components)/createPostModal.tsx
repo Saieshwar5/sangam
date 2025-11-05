@@ -5,7 +5,7 @@ import { MdClose, MdImage, MdSend, MdVideoLibrary, MdAttachFile, MdLink, MdDelet
 
 import { useGroupPosts } from '@/hooks/useGroupPosts';
 import { useUser } from '@/hooks/useAuth';
-import { profileName as getProfileName } from '@/hooks/useProfile';
+import { useProfileName } from '@/hooks/useProfile';
 
 interface CreatePostModalProps {
     isOpen: boolean;
@@ -63,7 +63,7 @@ const newPollOption = (id: number): PollOption => ({
 export default function CreatePostModal({ isOpen, onClose, groupId, groupName }: CreatePostModalProps) {
     const { setUserGroupPosts, userGroupPosts, error, success, isUserGroupPostsLoaded } = useGroupPosts();
     const user = useUser();
-    const profileName = getProfileName();
+    const profileName = useProfileName();
     const [postContent, setPostContent] = useState('');
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
