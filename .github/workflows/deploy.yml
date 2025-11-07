@@ -31,15 +31,13 @@ jobs:
           node-version: 20
 
       # --- build CLIENT ---
-      - name: Download client build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: client-build-artifact
-          path: client/.next
-          repository: ${{ github.repository }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: ./client
+      
+      - name: Build client
+        run: npm run build
+        working-directory: ./client
 
       
       # --- prepare SSH (write secrets to files) ---
