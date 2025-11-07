@@ -1,13 +1,18 @@
-name: Deploy (PM2, simple)
+name: final deploy workflow
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+   workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+
 
 jobs:
   deploy:
+    name: deploy
     runs-on: ubuntu-latest
 
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -16,23 +21,16 @@ jobs:
           node-version: 20
 
       # --- build CLIENT ---
-      - name: Install client deps
-        working-directory: client
-        run: npm ci
-      - name: Build client
-        working-directory: client
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-        run: npm run build
+      - name: Download client build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: client-build-artifact
+          path: client/.next
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
 
-      # --- build SERVER ---
-      - name: Install server deps
-        working-directory: server
-        run: npm ci
-      - name: Build server
-        working-directory: server
-        run: npm run build
 
+      
       # --- prepare SSH (write secrets to files) ---
       - name: Prepare SSH
         run: |
@@ -45,13 +43,15 @@ jobs:
       - name: Upload client build
         run: |
           rsync -az -e "ssh -i ~/.ssh/deploy_key" \
-            --delete client/.next client/package.json client/package-lock.json \
+            --delete client/.next client/src client/public client/package.json client/package-lock.json \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/apps/myapp/client/
 
-      - name: Upload server build
+      - name: Upload server source code
         run: |
           rsync -az -e "ssh -i ~/.ssh/deploy_key" \
-            --delete server/dist server/package.json server/package-lock.json \
+            --delete \
+            --exclude 'node_modules/' \
+            server/ \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/apps/myapp/server/
 
       # --- install prod deps on server & reload without downtime ---

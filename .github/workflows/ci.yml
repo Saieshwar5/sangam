@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   push:
-    branches: [main, develop]
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -122,6 +122,13 @@ jobs:
           # ✅ Add other client secrets if needed
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY || '' }}
         run: npm run build
+
+      - name: Upload client build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-build-artifact
+          path: ./client/.next
+          retention-days: 1
 
   # Combined Status Check
   ci-status:
