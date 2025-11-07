@@ -36,6 +36,7 @@ jobs:
         with:
           name: client-build-artifact
           path: client/.next
+          repository: ${{ github.repository }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
