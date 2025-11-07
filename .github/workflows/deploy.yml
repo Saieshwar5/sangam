@@ -1,0 +1,73 @@
+name: Deploy (PM2, simple)
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # --- build CLIENT ---
+      - name: Install client deps
+        working-directory: client
+        run: npm ci
+      - name: Build client
+        working-directory: client
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build
+
+      # --- build SERVER ---
+      - name: Install server deps
+        working-directory: server
+        run: npm ci
+      - name: Build server
+        working-directory: server
+        run: npm run build
+
+      # --- prepare SSH (write secrets to files) ---
+      - name: Prepare SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts || true
+
+      # --- upload artifacts to the server ---
+      - name: Upload client build
+        run: |
+          rsync -az -e "ssh -i ~/.ssh/deploy_key" \
+            --delete client/.next client/package.json client/package-lock.json \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/apps/myapp/client/
+
+      - name: Upload server build
+        run: |
+          rsync -az -e "ssh -i ~/.ssh/deploy_key" \
+            --delete server/dist server/package.json server/package-lock.json \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/apps/myapp/server/
+
+      # --- install prod deps on server & reload without downtime ---
+      - name: Install & reload on server
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<'EOSSH'
+          set -e
+
+          cd ~/apps/myapp/client
+          npm ci --omit=dev || true
+
+          cd ~/apps/myapp/server
+          npm ci --omit=dev
+
+          # graceful reload (no downtime)
+          pm2 startOrReload ~/apps/myapp/ecosystem/client.config.cjs || pm2 start ~/apps/myapp/ecosystem/client.config.cjs
+          pm2 startOrReload ~/apps/myapp/ecosystem/server.config.cjs || pm2 start ~/apps/myapp/ecosystem/server.config.cjs
+          pm2 save
+          EOSSH
