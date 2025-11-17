@@ -4,7 +4,7 @@
 export interface ChatUser {
     userId: string;
     chatUserId: string;
-    chatUserName: string;
+    chatUserName?: string;
     chatUserAvatar?: string;
     timestamp?: string;
     isOnline?: boolean;
@@ -48,9 +48,9 @@ export async function addUserToChatStore(user: ChatUser) {
 }
 
 
-export async function loadChatUserProfile(chatUserId: string) {
+export async function loadChatUserProfile(chatUserId: string, userId: string) {
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat-users/load-chat-user-profile?chatUserId=${chatUserId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/load-chat-user-profile?chatUserId=${chatUserId}&userId=${userId}`, {
             credentials: "include",
         });
         return response.json();

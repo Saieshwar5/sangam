@@ -15,7 +15,7 @@ type ProfileData = {
   name: string;
   bio: string;
   profession: string;
-  photoURL: File | null;
+  profilePicture: string;
 };
 
 function ProfileForm() {
@@ -40,7 +40,7 @@ function ProfileForm() {
     name: "",
     bio: "",
     profession: "",
-    photoURL: null,
+    profilePicture: "",
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -69,13 +69,20 @@ function ProfileForm() {
         name: profile.name || "",
         bio: profile.bio || "",
         profession: profile.profession || "",
-        photoURL: null,
+        profilePicture: profile.profilePicture || "",
+       
       });
-      
+      if(profile.profilePicture) {
+        console.log("profile.profilePicture", profile.profilePicture);
+        setImagePreview(`${profile.profilePicture}`);
+      }
+      else {
+        setImagePreview("");
+      }
       setIsEditing(true);  // Profile exists, so we're in edit mode
  if(newUser === 'true') {
       setTimeout(() => {
-        handleGoHome();
+        router.push(`/main/groups`);
       }, 3000);
     }
   }
@@ -110,7 +117,7 @@ function ProfileForm() {
        const response = handleJoinGroup();
        if(!response) {
       setMessage({ type: "success", text: "You have successfully joined the group" });
-      router.push(`/${groupId}`);
+      router.push(`/main/${groupId}`);
      }
     }
 
@@ -122,7 +129,7 @@ function ProfileForm() {
     try {
       const response = await joinGroupHook(groupId || '');
       if (response) {
-        router.push(`/groups?message=Group joined successfully&success=true&follow=true`);
+        router.push(`/main/groups?message=Group joined successfully&success=true&follow=true`);
         setIsJoining(false);
         return true;
       }
@@ -169,10 +176,22 @@ function ProfileForm() {
     if (!file) return;
     setImageFile(file);
 
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview((prev) => {
+      if (prev && prev.startsWith("blob:")) {
+        URL.revokeObjectURL(prev);
+      }
+      return objectUrl;
+    });
   };
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   // ✅ Combined save/update handler
   const onSave = async (e: React.FormEvent) => {
@@ -212,7 +231,7 @@ function ProfileForm() {
   };
 
   const handleGoHome = () => {
-    router.push('/');
+    router.push('/main');
   };
 
 
@@ -276,15 +295,11 @@ function ProfileForm() {
               <div className="flex flex-col items-center">
                 <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 mb-4 relative group">
                   {imagePreview ? (
-                    <>
-                      <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
-                        <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                    </>
+                    <img
+                      src={imagePreview}
+                      alt="Profile preview"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none">
@@ -353,11 +368,11 @@ function ProfileForm() {
                         name: profile.name || "",
                         bio: profile.bio || "",
                         profession: profile.profession || "",
-                        photoURL: null,
+                        profilePicture: profile.profilePicture || "",
                       });
                       setImageFile(null);
-                      if (profile.photoURL) {
-                        setImagePreview(`${process.env.NEXT_PUBLIC_API_URL}/${profile.photoURL}`);
+                      if (profile.profilePicture) {
+                        setImagePreview(`${process.env.NEXT_PUBLIC_API_URL}/${profile.profilePicture}`);
                       }
                     }}
                     className="px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"

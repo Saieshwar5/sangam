@@ -51,6 +51,10 @@ const Profile = sequelize.define('profile', {
     type: DataTypes.STRING, // Store URL or file path
     allowNull: true,
   },
+  profilePictureKey: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   
   isActive: {
     type: DataTypes.BOOLEAN,

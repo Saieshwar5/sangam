@@ -9,6 +9,7 @@ import ChatUser from './chatUsersOrm.js';
 import PollPostVote from './pollsPostOrm.js';
 import UsersInvitation from './usersInvitationOrm.js';
 import Comment from './commentsOrm.js';
+import GroupMedia from './groupMedia.js';
 
 
 
@@ -403,7 +404,24 @@ Profile.hasMany(ChatUser, {
     onUpdate: 'CASCADE',
 });
 
+// ================================
+// GroupMedia ↔ Communities (One-to-Many)
+// ================================
+Communities.hasMany(GroupMedia, {
+    foreignKey: 'groupId',
+    sourceKey: 'groupId',
+    as: 'groupMedia',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
 
+GroupMedia.belongsTo(Communities, {
+    foreignKey: 'groupId',
+    targetKey: 'groupId',
+    as: 'group',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
 
     console.log('✅ Model associations set up successfully');
 }
@@ -447,6 +465,9 @@ export async function syncModels() {
         await Comment.sync({ alter: false });
         console.log('✅ Comment model synchronized');
         
+        await GroupMedia.sync({ alter: false });
+        console.log('✅ GroupMedia model synchronized');
+        
         console.log('✅ All models synchronized successfully');
     } catch (error) {
         console.error('❌ Error synchronizing models:', error);
@@ -454,4 +475,4 @@ export async function syncModels() {
     }
 }
 
-export { User, Profile, Communities, UserGroups, GroupPosts, UsersMessages, ChatUser, UsersInvitation, Comment };
+export { User, Profile, Communities, UserGroups, GroupPosts, UsersMessages, ChatUser, UsersInvitation, Comment, GroupMedia  };

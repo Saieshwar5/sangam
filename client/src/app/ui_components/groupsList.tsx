@@ -38,7 +38,7 @@ export default function GroupsList({signedIn}: {signedIn: boolean}) {
         }
         if(message && success && created){
             setActiveTab('created');
-            router.push(`/groups/${groupId}`);
+            router.push(`/main/groups/${groupId}`);
         }
     }, [message, success, follow, searchParams, created, groupId])
 
@@ -48,6 +48,29 @@ export default function GroupsList({signedIn}: {signedIn: boolean}) {
             loadGroups();
         }
     }, []);
+    useEffect(() => {
+        if (groupId) return; // URL already points at a group
+    
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+        if(!isDesktop) return;
+        
+        if (isUserCreatedGroupsLoaded && userCreatedGroups.length > 0) {
+            router.replace(`/main/groups/${userCreatedGroups[0].groupId}`);
+            return;
+        }
+    
+        if (isUserFollowedGroupsLoaded && userFollowedGroups.length > 0) {
+            router.replace(`/main/groups/${userFollowedGroups[0].groupId}`);
+        }
+    }, [
+        groupId,
+        isUserCreatedGroupsLoaded,
+        userCreatedGroups,
+        isUserFollowedGroupsLoaded,
+        userFollowedGroups,
+        router,
+    ]);
   
 
    
@@ -73,6 +96,12 @@ export default function GroupsList({signedIn}: {signedIn: boolean}) {
     const createGroup = () => {
         router.push("/create_group")
     }
+
+    const handleGroupClick = (groupId: string) => {
+        router.push(`/main/groups/${groupId}`);
+    }
+
+
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
@@ -130,13 +159,13 @@ export default function GroupsList({signedIn}: {signedIn: boolean}) {
                     
                     <div key={group.groupId || index} className="w-full h-16 rounded-lg flex items-center justify-between flex-row gap-1 border-1 border-black hover:bg-gray-50 transition-colors
                     cursor-pointer"
-                    onClick={() => router.push(`/groups/${group.groupId}`)}
+                    onClick={() => handleGroupClick(group.groupId || '')}
                     >
                         {/* Group Logo */}
-                        <div className="w-16 h-16 rounded-lg flex items-center justify-center bg-gray-100">
+                        <div className="w-16 h-16 rounded-lg flex items-center justify-center">
                             {group.logo ? (
                                 <img 
-                                    src={`/uploads/${group.logo}`} 
+                                    src={group.logo || ''} 
                                     alt={group.groupName} 
                                     className="w-12 h-12 object-cover rounded-lg"
                                     onError={(e) => {
@@ -171,6 +200,7 @@ export default function GroupsList({signedIn}: {signedIn: boolean}) {
                 {/* ✅ Create Group Button */}
                 <button 
                     className="w-full h-16 rounded-lg flex items-center justify-center flex-row gap-2 border-1 border-black bg-teal-500 hover:bg-teal-600 hover:cursor-pointer hover:text-gray-200  text-white font-bold transition-colors"
+                   
                     onClick={createGroup}
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

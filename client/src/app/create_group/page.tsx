@@ -105,12 +105,12 @@ export default function CreateGroupPage() {
 
 
                 setTimeout(() => {
-                    router.push(`/groups/${groupId}`);
+                    router.push(`/main/groups/${groupId}`);
                 }, 5000); // Small delay to ensure store propagation
                 
             
             // ✅ FIXED: Use template literal with ${groupId}
-            router.push(`/groups/${groupId}`);
+            router.push(`/main/groups/${groupId}`);
             } else {
                 alert(`Failed to create group: ${response.message}`);
             }

@@ -5,7 +5,7 @@ export async function saveProfile(profile: any) {
 
     console.log("saveProfile", profile);
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/create`, {
             method: "POST",
             credentials: "include",
             body: profile,
@@ -23,7 +23,7 @@ export async function saveProfile(profile: any) {
 
 export async function loadProfileFromServer(userId: string) {
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/${userId}`,
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/get/${userId}`,
            { credentials: "include",
         }
         );
@@ -41,7 +41,7 @@ export async function loadProfileFromServer(userId: string) {
 export async function updateProfileOnServer(profile: FormData, userId: string)
 {
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/${userId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/update/${userId}`, {
             method: "PUT",
             credentials: "include",
             body: profile,

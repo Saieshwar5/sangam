@@ -6,33 +6,28 @@ import { devtools } from "zustand/middleware";
  import { createGroup, joinGroupApi, loadUserFollowedGroupsApi, loadUserCreatedGroupsApi, leaveGroupApi} from "@/api/groupsApis";
 
 
-export interface Group {
+ export interface Group {
     groupId: string;
     groupName: string;
     description: string;
-    logo: string;
-    groupCoverImage: string;
-    groupUniqueName: string;
-    groupVision: string;
-    groupAddress: string;
-    groupCreatedBy: string;
-    // ✅ Add social media fields
-    youtubeUrl: string;
-    twitterUrl: string;
-    instagramUrl: string;
-    groupMembers: string[];
-    groupRules: string[];
-    groupCreatedAt: string;
-    groupUpdatedAt: string;
-    groupIsActive: boolean;
-    groupIsVerified: boolean;
-    groupIsDeleted: boolean;
-    groupIsArchived: boolean;
-    groupIsSuspended: boolean;
-    groupIsBanned: boolean;
-    groupIsBlocked: boolean;
-}
-
+    logo: string | null;
+    coverImage: string | null;
+    uniqueName: string;
+    vision: string | null;
+    address: string | null;
+    createdBy: string;
+    youtubeUrl: string | null;
+    twitterUrl: string | null;
+    instagramUrl: string | null;
+    isActive: boolean;
+    isDeleted: boolean;
+    isSuspended: boolean;
+    isBanned: boolean;
+    createdAt: string;
+    updatedAt: string;
+    logoKey?: string | null;
+    coverImageKey?: string | null;
+  }
 interface UserGroups {
     userFollowedGroups: Group[];
     userCreatedGroups: Group[];

@@ -31,7 +31,7 @@ export default function UserProfilePage() {
     }, [userId, isProfileLoaded, profile.userId, loadProfile]);
 
     const handleMessageClick = () => {
-        router.push(`/chat?userId=${userId}`);
+        router.push(`/main/chat?userId=${userId}`);
     };
 
     if (isLoading) {
@@ -77,20 +77,20 @@ export default function UserProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="min-h-screen bg-transparent">
             {/* Profile Content */}
             <div className="max-w-5xl mx-auto px-4 py-8">
                 <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
                     {/* Profile Header */}
-                    <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 px-8 py-12">
+                    <div className="relative bg-teal-500 px-8 py-12">
                         <div className="absolute inset-0 bg-black opacity-10"></div>
                         <div className="relative flex flex-col lg:flex-row items-center lg:items-end space-y-6 lg:space-y-0 lg:space-x-8">
                             {/* Profile Picture */}
                             <div className="relative group">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
+                                <div className="absolute -inset-1 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
                                 <div className="relative">
-                                    <Image
-                                        src="/default-avatar.png"
+                                    <img
+                                        src={profile.profilePicture || '/default-avatar.png'}
                                         alt={profile.displayName || profile.name}
                                         width={140}
                                         height={140}

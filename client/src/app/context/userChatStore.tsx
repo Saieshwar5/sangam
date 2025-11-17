@@ -10,7 +10,7 @@ import { addUserToChatStore, loadExistingChatUsers, loadChatUserProfile } from "
 export interface ChatUser {
     userId: string;
     chatUserId: string;
-    chatUserName: string;
+    chatUserName?: string;
     chatUserAvatar?: string;
     timestamp?: string;
     isOnline?: boolean;
@@ -63,7 +63,7 @@ export const useUserChatStore= create<UserChatStore>()(
                             userId: user.userId || '',
                             chatUserId: user.chatUserId,
                             chatUserName: user.chatUserName,
-                            chatUserAvatar: "/default-avatar.png",
+                            chatUserAvatar: user.chatUserAvatar,
                             timestamp:  new Date().toISOString(),
                             isOnline: false,
                             unreadCount: 0,
@@ -99,11 +99,12 @@ export const useUserChatStore= create<UserChatStore>()(
                     if(response.success){
                         set({ success: response.message });
                         const user = response.data;
+                        console.log("Adding user to chat store", user);
                         const chatUser = {
                             userId: user.userId || '',
                             chatUserId: user.chatUserId,
                             chatUserName: user.chatUserName,
-                            chatUserAvatar: "/default-avatar.png",
+                            chatUserAvatar: user.chatUserAvatar || '',
                             timestamp: user.timestamp,
                             isOnline: user.isOnline,
                             unreadCount: user.unreadCount,
@@ -111,11 +112,14 @@ export const useUserChatStore= create<UserChatStore>()(
                             lastMessage: user.lastMessage,
                         };
                         const currentUsers = get().chatUsers;
+                        console.log('🟡 Current users before merge:', currentUsers);
                         const uniqueUsers = Array.from(
                             new Map([...currentUsers, chatUser].map(u => [u.chatUserId, u])).values()
                         );
+                        console.log('🟣 Unique users after merge:', uniqueUsers);
                         set({ chatUsers: uniqueUsers });
-                        set({ isUserChatsLoaded: true });
+                        console.log('🔴 AFTER setState - users:', get().chatUsers.length);
+                       // set({ isUserChatsLoaded: true });
                         set({ success: response.message });
                     }
                     else{

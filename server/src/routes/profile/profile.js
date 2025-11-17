@@ -2,15 +2,19 @@ import express from 'express';
 import Profile from '../../models/profileOrm.js';
 import User from '../../models/usersOrm.js';
 import upload from '../../middleware/multer.js';
+import uploadToS3 from '../../middleware/multerForS3.js';
 
 const profileRouter = express.Router();
 
-profileRouter.post('/profile', upload.single('image'), async (req, res) => {
+profileRouter.post('/create', uploadToS3.single('image'), async (req, res) => {
     console.log("Creating profile...");
     
     try {
         const { name, bio, profession, userId, email, displayName } = req.body;
         const imageFile = req.file; // File info from multer
+        const profilePictureUrl = imageFile ? imageFile.location : null;
+        const profilePictureKey = imageFile ? imageFile.key : null;
+
         
         console.log('Text data:', { name, bio, profession, userId, email, displayName });
         console.log('Image file:', imageFile);
@@ -38,7 +42,8 @@ profileRouter.post('/profile', upload.single('image'), async (req, res) => {
             name,
             bio,
             profession,
-            profilePicture: imageFile ? imageFile.filename : null,
+            profilePicture: profilePictureUrl,
+            profilePictureKey: profilePictureKey,
             userId,
             email,
             displayName
@@ -69,7 +74,7 @@ profileRouter.post('/profile', upload.single('image'), async (req, res) => {
 
 //route for the update of the profile 
 
-profileRouter.put('/profile/:userId', upload.single('image'), async (req, res) => {
+profileRouter.put('/update/:userId', upload.single('image'), async (req, res) => {
     console.log("Updating profile...");
     
     try {
@@ -114,7 +119,7 @@ profileRouter.put('/profile/:userId', upload.single('image'), async (req, res) =
 }); 
 
 // ✅ Get profile by userId with user data
-profileRouter.get('/profile/:userId', async (req, res) => {
+profileRouter.get('/get/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
         

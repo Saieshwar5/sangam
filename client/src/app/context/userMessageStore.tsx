@@ -92,6 +92,8 @@ export const useMessageStore = create<MessageState>()(
                 addMessage: (message: Message) => {
                     const roomId = message.roomId || 'default';
                     const currentMessages = get().messages[roomId] || [];
+
+                    console.log(" we are adding meaage to the store @@", message);
                     
                     // ✅ PREVENT DUPLICATES
                     const isDuplicate = currentMessages.some(
@@ -203,6 +205,8 @@ export const useMessageStore = create<MessageState>()(
                         if (response.success) {
 
                             console.log("Unread messages:", response.data.unreadBySender);
+                            console.log("Unread count:", response.data.totalUnread);
+                            
                             set({
                                 unreadMessages: response.data.unreadBySender,
                                 unreadCount: response.data.totalUnread,

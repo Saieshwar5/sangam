@@ -18,24 +18,24 @@ const messageRoutes = express.Router();
 messageRoutes.use(authMiddleWare);
 
 // Save a new message
-messageRoutes.post('/messages', saveMessage);
+messageRoutes.post('/save', saveMessage);
 
 // Get messages for a room (private chat)
-messageRoutes.get('/messages/room/:roomId', getMessagesByRoom);
+messageRoutes.get('/room/:roomId', getMessagesByRoom);
 
 // Get messages between two users
-messageRoutes.get('/messages/between', getMessagesBetweenUsers);
+messageRoutes.get('/between', getMessagesBetweenUsers);
 
 // Mark messages as read
-messageRoutes.put('/messages/mark-read', markAsRead);
+messageRoutes.put('/mark-read', markAsRead);
 
 // Delete a message
-messageRoutes.delete('/messages/:messageId', deleteMessage);
+messageRoutes.delete('/:messageId', deleteMessage);
 
 // NEW ROUTES FOR UNREAD MESSAGES
 
 // Get unread messages grouped by sender
-messageRoutes.get('/unread-messages/', getUnreadMessagesByReceiver);
+messageRoutes.get('/unread-messages', getUnreadMessagesByReceiver);
 
 // Get total unread count for a user (quick endpoint)
 messageRoutes.get('/unread-count', getUnreadCount);

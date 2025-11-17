@@ -1,4 +1,4 @@
-// server/src/models/chatUsersOrm.js
+
 
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/mySqlConfig.js';
@@ -18,11 +18,6 @@ const ChatUser = sequelize.define('chatUsers', {
         type: DataTypes.STRING,
         allowNull: false,
         comment: 'ID of the user in the chat'
-    },
-    chatUserName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        comment: 'Name of the user in the chat'
     },
     timestamp: {
         type: DataTypes.STRING,

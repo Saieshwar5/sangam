@@ -29,7 +29,7 @@ export const loadExistingChatUsers = async (req, res) => {
                         {
                             model: Profile,
                             as: 'profile',  // Contact's profile
-                            attributes: ['name', 'email', 'profilePicture', 'bio', 'profession', 'phoneNumber'],
+                            attributes: ['name', 'email', 'profilePicture', 'bio', 'profession'],
                             required: false
                         }
                     ]
@@ -46,11 +46,13 @@ export const loadExistingChatUsers = async (req, res) => {
             });
         }
 
+        console.log("chatUsers", chatUsers);
+
         const chatUsersWithProfile = chatUsers.map(chatUser => {
             return {
                 chatUserId: chatUser.chatUserId,
-                chatUserName: chatUser.chatUserName,
-                chatUserAvatar: chatUser.profile?.profilePicture || '/default-avatar.png',
+                chatUserName: chatUser.contactUser?.profile?.name,
+                chatUserAvatar: chatUser.contactUser?.profile?.profilePicture,
                 timestamp: chatUser.timestamp,
                 isOnline: chatUser.isOnline,
                 unreadCount: chatUser.unreadCount,
@@ -80,17 +82,36 @@ export const loadExistingChatUsers = async (req, res) => {
 
 export const loadChatUserProfile = async (req, res) => {
     const chatUserId = req.query.chatUserId;
-    const userId = req.user.id;
+    const userId = req.query.userId;
+
+
+    console.log("loading chat user profile for chatUserId  #####################@@@@@@@@@@@@@@@@@@@@############@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%%%%%", chatUserId);
+    console.log("loading chat user profile for userId #####################@@@@@@@@@@@@@@@@@@@@############@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%%%%%", userId);
+
     if(!userId) {
+
+        console.log("userId is not found #####################@@@@@@@@@@@@@@@@@@@@############@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%%%%%");
         return res.status(401).json({ 
             success: false, 
             message: 'Unauthorized' 
         });
     }
     if(!chatUserId) {
+        console.log("chatUserId is not found #####################@@@@@@@@@@@@@@@@@@@@############@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%%%%%");
         return res.status(400).json({ 
             success: false, 
             message: 'chatUserId is required' 
+        });
+    }
+
+
+    
+
+    if(chatUserId === userId) {
+        console.log("chatUserId is the same as userId #####################@@@@@@@@@@@@@@@@@@@@############@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%%%%%");
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Cannot load your own profile for chat' 
         });
     }
 
@@ -106,7 +127,8 @@ export const loadChatUserProfile = async (req, res) => {
              }
 
            const  finalProfile = {
-                chatUserId: profile.userId,
+                userId: userId,
+                chatUserId: chatUserId,
                 chatUserName: profile.name,
                 chatUserAvatar: profile.profilePicture,
                 timestamp: new Date().toISOString(),
@@ -185,11 +207,11 @@ export const loadChatUserById = async (req, res) => {
 // Create or update a chat user
 export const addUserToChatUsers = async (req, res) => {
     try {
-        const { userId, chatUserId, chatUserName, isOnline, unreadCount, lastMessage, lastMessageTime } = req.body;
-        if (!chatUserId || !chatUserName) {
+        const { userId, chatUserId, isOnline, unreadCount, lastMessage, lastMessageTime } = req.body;
+        if (!chatUserId) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'chatUserId and chatUserName are required' 
+                message: 'chatUserId is required' 
             });
         }
         
@@ -197,7 +219,6 @@ export const addUserToChatUsers = async (req, res) => {
         const [chatUser, created] = await ChatUser.upsert({
             userId,
             chatUserId,
-            chatUserName,
             isOnline: isOnline || false,
             unreadCount: unreadCount || 0,
             lastMessage: lastMessage || null,
@@ -207,19 +228,54 @@ export const addUserToChatUsers = async (req, res) => {
             returning: true
         });
 
-        if(!created) {
+        if(!chatUser) {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Failed to add/update chat user' 
             });
         }
 
-        console.log("adding user to opposite user chat store ===============================================>", chatUser);
+        // ✅ Fetch the full user data with profile information
+        const chatUserWithProfile = await ChatUser.findOne({
+            where: { id: chatUser.id },
+            include: [
+                {
+                    model: User,
+                    as: 'contactUser',
+                    attributes: ['id', 'userId', 'email'],
+                    required: false,
+                    include: [
+                        {
+                            model: Profile,
+                            as: 'profile',
+                            attributes: ['name', 'email', 'profilePicture', 'bio', 'profession'],
+                            required: false
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // ✅ Format response with profile data (matching loadExistingChatUsers format)
+        const formattedData = {
+            id: chatUserWithProfile.id,
+            userId: chatUserWithProfile.userId,
+            chatUserId: chatUserWithProfile.chatUserId,
+            chatUserName: chatUserWithProfile.contactUser?.profile?.name,
+            chatUserAvatar: chatUserWithProfile.contactUser?.profile?.profilePicture,
+            timestamp: chatUserWithProfile.timestamp,
+            isOnline: chatUserWithProfile.isOnline,
+            unreadCount: chatUserWithProfile.unreadCount,
+            lastMessageTime: chatUserWithProfile.lastMessageTime,
+            lastMessage: chatUserWithProfile.lastMessage,
+        };
+
+        console.log("adding user to opposite user chat store ===============================================>", formattedData);
         
         res.json({ 
             success: true, 
             message: created ? 'Chat user created successfully' : 'Chat user updated successfully',
-            data: chatUser 
+            data: formattedData
         });
     } catch (error) {
         console.error('Error adding/updating chat user:', error);
@@ -267,3 +323,35 @@ export const updateChatUserStatus = async (req, res) => {
         });
     }
 };
+
+
+export const checkUserOnlineStatus = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const chatUser = await ChatUser.findOne({
+            where: { chatUserId: userId }
+        });
+        if(!chatUser) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Chat user not found' 
+            });
+        }
+        res.status(200).json({ 
+            success: true, 
+            message: 'Chat user online status checked successfully', 
+            data: chatUser.isOnline 
+        });
+    } catch (error) {
+        console.error('Error checking user online status:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to check user online status', 
+            error: error.message 
+        });
+    }
+};
+
+
+

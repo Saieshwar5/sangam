@@ -6,9 +6,9 @@ const chatUsersRoutes = express.Router();
 
 chatUsersRoutes.use(authMiddleWare);
 
-chatUsersRoutes.get('/chat/users', loadExistingChatUsers);
-chatUsersRoutes.post('/chat/users',addUserToChatUsers);
-chatUsersRoutes.get('/chat-users/load-chat-user-profile', loadChatUserProfile);
+chatUsersRoutes.get('/users', loadExistingChatUsers);
+chatUsersRoutes.post('/users',addUserToChatUsers);
+chatUsersRoutes.get('/load-chat-user-profile', loadChatUserProfile);
 
 
 

@@ -64,7 +64,7 @@ export async function saveMessageToServer(
 ): Promise<SaveMessageResponse> {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/messages`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/messages/save`,
             {
                 method: 'POST',
                 headers: {
@@ -161,7 +161,7 @@ export async function deleteMessage(messageId: string): Promise<{ success: boole
 export async function getUnreadMessages() {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/unread-messages`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/messages/unread-messages`,
             {
                 credentials: 'include'
             }
@@ -176,7 +176,7 @@ export async function getUnreadMessages() {
 export async function getUnreadCount() {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/unread-count`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/messages/unread-count`,
             {
                 credentials: 'include'
             }
@@ -191,7 +191,7 @@ export async function getUnreadCount() {
 export async function markSenderMessagesAsRead(userId: string, senderId: string) {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/mark-sender-read/${userId}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/messages/mark-sender-read/${userId}`,
             {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },

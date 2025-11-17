@@ -45,7 +45,7 @@ function SignInForm() {
             handleJoinGroup();
            }
            else{
-            router.push("/groups?signedIn=true");
+            router.push("/main/groups?signedIn=true");
            }
      
         }, 3000);
@@ -108,7 +108,7 @@ function SignInForm() {
     try {
       const response = await joinGroupHook(groupId || '');
       if (response) {
-        router.push(`/groups?message=Group joined successfully&success=true&follow=true`);
+        router.push(`/main/groups?message=Group joined successfully&success=true&follow=true`);
         return true;
       }
       else {

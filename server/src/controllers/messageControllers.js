@@ -267,8 +267,13 @@ export const getUnreadMessagesByReceiver = async (req, res) => {
             }
         });
 
+        console.log("unreadBySender ##########################################", unreadBySender);
+
         // Convert to array
         const unreadBySenderArray = Object.values(unreadBySender);
+
+
+        console.log("unreadBySenderArray ##########################################", unreadBySenderArray);
         
         // Calculate total
         const totalUnread = unreadMessages.length;

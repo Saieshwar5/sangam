@@ -12,7 +12,7 @@ const loadMembersRouter = express.Router();
  * ✅ MOST EFFICIENT: Single query with nested includes
  * Gets all members of a group with their profiles in ONE database query
  */
-loadMembersRouter.get('/group/:groupId/members', async (req, res) => {
+loadMembersRouter.get('/:groupId/members', async (req, res) => {
     try {
         const { groupId } = req.params;
 

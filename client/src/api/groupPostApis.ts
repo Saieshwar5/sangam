@@ -8,7 +8,7 @@ async function createGroupPost(GroupPost: any)
         console.log("createGroupPost", GroupPost);
 
         console.log( "server url", `${process.env.NEXT_PUBLIC_API_URL}/api/posts`);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/create`, {
             method: "POST",
             credentials: "include",
             body: GroupPost,
@@ -44,7 +44,7 @@ async function voteOnPollPost(voteData: any, postId: string)
 {
     console.log("we are at the api function");
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/${postId}/vote`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/poll/${postId}/vote`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ async function voteOnPollPost(voteData: any, postId: string)
 async function recordEventParticipationApi(userId: string, postId: string)
 {
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/${postId}/event/participate`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/event/${postId}/participate`, {
             credentials: "include",
             method: "POST",
         });
@@ -74,5 +74,10 @@ async function recordEventParticipationApi(userId: string, postId: string)
         throw error;
     }
 }
+
+
+
+
+
 
 export { createGroupPost, getUserGroupPosts, voteOnPollPost, recordEventParticipationApi };

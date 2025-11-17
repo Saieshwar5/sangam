@@ -41,7 +41,6 @@ export async function signInWithEmail(user: any) {
 export async function signOut() {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/sign_out`, {
-            method: "POST",
             credentials: "include",
         });
         return response.json();

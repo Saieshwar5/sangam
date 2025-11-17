@@ -27,10 +27,20 @@ export function setTokenCookie(res, token) {
  * @param {Object} res - Express response object
  */
 export function clearTokenCookie(res) {
+    try{
     res.clearCookie('auth_token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         path: '/',
     });
+    }
+    catch(error){
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
 }

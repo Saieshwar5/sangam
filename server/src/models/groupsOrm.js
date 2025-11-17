@@ -49,7 +49,15 @@ const communities = sequelize.define('communities', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    coverImageKey: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
     logo: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    logoKey: {
         type: DataTypes.STRING,
         allowNull: true,
     },

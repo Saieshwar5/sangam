@@ -4,6 +4,10 @@ import { setupPrivateChatHandlers } from './privateChatHandlers.js';
 export function setupSocketHandlers(io) {
 
     setupPrivateChatHandlers(io);
+
+}
+
+    {/*
     io.on('connection', (socket) => {
         console.log(`✅ User ${socket.userEmail} connected with socket ${socket.id}`);
 
@@ -192,3 +196,5 @@ function handleDisconnect(socket) {
         });
     }
 }
+
+*/} 

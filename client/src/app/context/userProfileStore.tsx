@@ -14,7 +14,7 @@ interface UserProfile {
   name: string;
   bio: string;
   profession: string;
-  photoURL: File | null;
+  profilePicture: string;
   phoneNumber: string;
   isActive: boolean;
   isVerified: boolean;
@@ -57,7 +57,7 @@ export const useUserProfileStore = create<UserProfileState>()(
           name: "",
           bio: "",
           profession: "",
-          photoURL: null,   
+          profilePicture: "",   
           phoneNumber: "",
           isActive: false,
           isVerified: false,
@@ -88,7 +88,7 @@ export const useUserProfileStore = create<UserProfileState>()(
                   name: "",
                   bio: "",
                   profession: "",
-                  photoURL: null,
+                  profilePicture: "",
                   phoneNumber: "",
                   isActive: false,
                   isVerified: false,
@@ -126,7 +126,7 @@ export const useUserProfileStore = create<UserProfileState>()(
                     set({ success: response.message });
                 }
                 else{
-                    set({ profile: { name: "", bio: "", profession: "", photoURL: null, userId: "", email: "", displayName: "", phoneNumber: "", isActive: false, isVerified: false, isDeleted: false, isArchived: false, isSuspended: false, isBanned: false, isBlocked: false, createdAt: "", updatedAt: "" } });
+                    set({ profile: { name: "", bio: "", profession: "", profilePicture: "", userId: "", email: "", displayName: "", phoneNumber: "", isActive: false, isVerified: false, isDeleted: false, isArchived: false, isSuspended: false, isBanned: false, isBlocked: false, createdAt: "", updatedAt: "" } });
                     set({ error: response.message });
                 }
             }
@@ -162,7 +162,7 @@ export const useUserProfileStore = create<UserProfileState>()(
               set({ isProfileLoaded: true });
               set({ success: response.message });
             } else {
-              set({ profile: { name: "", bio: "", profession: "", photoURL: null, userId: "", email: "", displayName: "", phoneNumber: "", isActive: false, isVerified: false, isDeleted: false, isArchived: false, isSuspended: false, isBanned: false, isBlocked: false, createdAt: "", updatedAt: "" } });
+              set({ profile: { name: "", bio: "", profession: "", profilePicture: "", userId: "", email: "", displayName: "", phoneNumber: "", isActive: false, isVerified: false, isDeleted: false, isArchived: false, isSuspended: false, isBanned: false, isBlocked: false, createdAt: "", updatedAt: "" } });
               set({ isProfileLoaded: false });
               set({ error: response.message });
             }
@@ -190,7 +190,7 @@ export const useUserProfileStore = create<UserProfileState>()(
                     set({ success: response.message });
                 }
                 else{
-                    set({ profile: { name: "", bio: "", profession: "", photoURL: null, userId: "", email: "", displayName: "", phoneNumber: "", isActive: false, isVerified: false, isDeleted: false, isArchived: false, isSuspended: false, isBanned: false, isBlocked: false, createdAt: "", updatedAt: "" } });
+                    set({ profile: { name: "", bio: "", profession: "", profilePicture: "", userId: "", email: "", displayName: "", phoneNumber: "", isActive: false, isVerified: false, isDeleted: false, isArchived: false, isSuspended: false, isBanned: false, isBlocked: false, createdAt: "", updatedAt: "" } });
                     set({ isProfileLoaded: false });
                     set({ error: response.message });
                 }

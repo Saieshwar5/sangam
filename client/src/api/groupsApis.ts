@@ -4,7 +4,7 @@
 async function createGroup(group: any)
 {
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/groups`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/groups/create`, {
             method: "POST",
             body: group,
         });
@@ -95,7 +95,7 @@ async function joinGroupApi(groupId: string)
  async function loadGroupInfoApi(groupId: string)
  {
     try{
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/group/info/${groupId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/groups/info/${groupId}`, {
             method: "GET",
         });
         return response.json();
