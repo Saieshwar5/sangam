@@ -10,7 +10,7 @@ import PollPostVote from './pollsPostOrm.js';
 import UsersInvitation from './usersInvitationOrm.js';
 import Comment from './commentsOrm.js';
 import GroupMedia from './groupMedia.js';
-
+import JoinGroupRequests from './joinGroupRequestsOrm.js';
 
 
 /**
@@ -423,6 +423,60 @@ GroupMedia.belongsTo(Communities, {
     onUpdate: 'CASCADE',
 });
 
+    // ================================
+    // JoinGroupRequests ↔ User (One-to-Many)
+    // ================================
+    User.hasMany(JoinGroupRequests, {
+        foreignKey: 'userId',
+        sourceKey: 'userId',
+        as: 'joinGroupRequests',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    JoinGroupRequests.belongsTo(User, {
+        foreignKey: 'userId',
+        targetKey: 'userId',
+        as: 'user',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    User.hasMany(JoinGroupRequests, {
+        foreignKey: 'referrerId',
+        sourceKey: 'userId',
+        as: 'referredJoinRequests',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    JoinGroupRequests.belongsTo(User, {
+        foreignKey: 'referrerId',
+        targetKey: 'userId',
+        as: 'referrer',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    // ================================
+    // JoinGroupRequests ↔ Communities (One-to-Many)
+    // ================================
+    Communities.hasMany(JoinGroupRequests, {
+        foreignKey: 'groupId',
+        sourceKey: 'groupId',
+        as: 'joinGroupRequests',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+    JoinGroupRequests.belongsTo(Communities, {
+        foreignKey: 'groupId',
+        targetKey: 'groupId',
+        as: 'group',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
     console.log('✅ Model associations set up successfully');
 }
 
@@ -468,6 +522,9 @@ export async function syncModels() {
         await GroupMedia.sync({ alter: false });
         console.log('✅ GroupMedia model synchronized');
         
+        await JoinGroupRequests.sync({ alter: false });
+        console.log('✅ JoinGroupRequests model synchronized');
+        
         console.log('✅ All models synchronized successfully');
     } catch (error) {
         console.error('❌ Error synchronizing models:', error);
@@ -475,4 +532,4 @@ export async function syncModels() {
     }
 }
 
-export { User, Profile, Communities, UserGroups, GroupPosts, UsersMessages, ChatUser, UsersInvitation, Comment, GroupMedia  };
+export { User, Profile, Communities, UserGroups, GroupPosts, UsersMessages, ChatUser, UsersInvitation, Comment, GroupMedia, JoinGroupRequests  };

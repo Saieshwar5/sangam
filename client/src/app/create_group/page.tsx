@@ -33,7 +33,23 @@ export default function CreateGroupPage() {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
+
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [isSuccess, setIsSuccess] = useState(false);
+
     
+
+    const showNotification = (message: string, success: boolean) => {
+        setToastMessage(message);
+        setIsSuccess(success);
+        setShowToast(true);
+        
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            setShowToast(false);
+        }, 3000);
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -98,7 +114,7 @@ export default function CreateGroupPage() {
             const response = await createGroup(formDataToSend);
 
             if (response.success) {
-                alert('Group created successfully!');
+                showNotification('Group created successfully!', true);
                 const groupId= response.data.groupId;
                 console.log('✅ Group created with ID:', groupId); // Debug log
 
@@ -112,12 +128,12 @@ export default function CreateGroupPage() {
             // ✅ FIXED: Use template literal with ${groupId}
             router.push(`/main/groups/${groupId}`);
             } else {
-                alert(`Failed to create group: ${response.message}`);
+                showNotification(`Failed to create group: ${response.message}`, false); // ✅ Toast
             }
             
         } catch (error) {
             console.error('Error creating group:', error);
-            alert('Failed to create group');
+            showNotification('Failed to create group', false);
         } finally {
             setLoading(false);
         }
@@ -125,6 +141,32 @@ export default function CreateGroupPage() {
 
     return (
         <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+
+{showToast && (
+                <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 min-w-[300px] px-4 py-3 rounded-lg shadow-lg border flex items-center justify-between animate-fade-in-down ${
+                    isSuccess ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+                }`}>
+                    <div className="flex items-center gap-3">
+                        {isSuccess ? (
+                            <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        ) : (
+                            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        )}
+                        <span className="font-medium text-sm">{toastMessage}</span>
+                    </div>
+                    <button onClick={() => setShowToast(false)} className="ml-4 text-gray-400 hover:text-gray-600">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+
+            
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Group</h1>
             </div>

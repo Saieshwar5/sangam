@@ -33,7 +33,7 @@ export default function Header() {
         <>
         <div className="flex items-center justify-between md:px-6 md:py-4 py-1 px-2 h-full w-full">
             
-            <h1 className="text-medium md:text-2xl font-bold">Sangam.in</h1>
+            <h1 className="text-medium md:text-2xl font-bold">Vedika.space</h1>
 
             <div className="flex items-center gap-3">
         

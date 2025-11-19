@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useUserProfileStore } from "@/app/context/userProfileStore";
 import { useJoinGroup } from "@/hooks/userGroups";
+import { useJoinGroupRequestsStore } from "@/app/context/joinGroupRequestsStore";
 
 
 type ProfileData = {
@@ -26,6 +27,8 @@ function ProfileForm() {
   const groupId = searchParams.get('groupId');
   const redirect = searchParams.get('redirect');
   const newUser = searchParams.get('newUser');
+  const referrerId = searchParams.get('referrerId');
+  const { createRequest } = useJoinGroupRequestsStore();
   const {
     profile,
     error,
@@ -62,6 +65,44 @@ function ProfileForm() {
   }, [user?.id]);
 
 
+
+  useEffect(() => {
+      
+    if(redirect === 'join_request') {
+
+      if (!isProfileLoaded) {
+        console.log("🚫 Guard: Profile not loaded");
+        return;
+    }
+    
+    if (groupId === null || groupId === undefined) {
+        console.log("🚫 Guard: GroupId is null/undefined");
+        return;
+    }
+    
+    if (redirect !== 'join_request') {
+        console.log("🚫 Guard: Redirect is not 'join'");
+        return;
+    }
+    
+    if (!profile.name || profile.name === "") {
+        console.log("🚫 Guard: Profile name is empty");
+        return;
+    }
+
+     
+       
+       const response = handleJoinGroup();
+       if(!response) {
+      setMessage({ type: "success", text: "You have successfully joined the group" });
+      router.push(`/main/${groupId}`);
+     }
+    }
+
+  }, [isProfileLoaded, groupId, redirect, profile.name]);
+
+
+
   // ✅ Populate form when profile loads
   useEffect(() => {
     if (profile && profile.userId) {
@@ -85,61 +126,37 @@ function ProfileForm() {
         router.push(`/main/groups`);
       }, 3000);
     }
+
+  if(redirect === 'join_request') {
+    handleJoinGroup();
+  }
+  else{
+    router.push(`/main/groups`);
+  }
   }
   }, [profile]);
 
-  useEffect(() => {
-      
-    if(redirect === 'join') {
-
-      if (!isProfileLoaded) {
-        console.log("🚫 Guard: Profile not loaded");
-        return;
-    }
-    
-    if (groupId === null || groupId === undefined) {
-        console.log("🚫 Guard: GroupId is null/undefined");
-        return;
-    }
-    
-    if (redirect !== 'join') {
-        console.log("🚫 Guard: Redirect is not 'join'");
-        return;
-    }
-    
-    if (!profile.name || profile.name === "") {
-        console.log("🚫 Guard: Profile name is empty");
-        return;
-    }
-
-     
-       
-       const response = handleJoinGroup();
-       if(!response) {
-      setMessage({ type: "success", text: "You have successfully joined the group" });
-      router.push(`/main/${groupId}`);
-     }
-    }
-
-  }, [isProfileLoaded, groupId, redirect, profile.name]);
-
+  
 
   const handleJoinGroup = async () => {
     setIsJoining(true);
     try {
-      const response = await joinGroupHook(groupId || '');
+      const response = await createRequest(groupId || '', referrerId || '');
       if (response) {
-        router.push(`/main/groups?message=Group joined successfully&success=true&follow=true`);
+        router.push(`/main/groups?message=${response.message}&success=true`);
         setIsJoining(false);
-        return true;
+        return;
       }
       else {
         setIsJoining(false);
-        return false;
+        router.push(`/main/groups?message=${response.message}&error=true`);
+        return;
       }
     }
     catch (error) {
       console.error(error);
+      router.push(`/main/groups?message=Failed to join group&error=true`);
+      return;
     } finally {
       setIsJoining(false);
     }

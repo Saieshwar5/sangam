@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useUserAuthStore } from '@/app/context/userAuthStore';
 import { useJoinGroup } from '@/hooks/userGroups';
 import { useProfileLoader } from '@/hooks/useProfile';
+import { useJoinGroupRequestsStore } from '@/app/context/joinGroupRequestsStore';
 
 
 
@@ -19,11 +20,14 @@ function SignInForm() {
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId');
   const redirect = searchParams.get('redirect');
+  const referrerId = searchParams.get('referrerId');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const joinGroupHook = useJoinGroup();
   const { signInWithEmail, loading, error, success,setError, setSuccess, setLoading, isAuthenticated ,user} = useUserAuthStore();
   const loadProfile = useProfileLoader();
+
+  const { createRequest } = useJoinGroupRequestsStore();
 
   useEffect(() => {
 
@@ -41,7 +45,7 @@ function SignInForm() {
             loadProfile(user.id);
           }
 
-           if(groupId && redirect === 'join'){
+           if(groupId && redirect === 'join_request'){
             handleJoinGroup();
            }
            else{
@@ -106,18 +110,20 @@ function SignInForm() {
 
   const handleJoinGroup = async () => {
     try {
-      const response = await joinGroupHook(groupId || '');
+      const response = await createRequest(groupId || '', referrerId || '');
       if (response) {
-        router.push(`/main/groups?message=Group joined successfully&success=true&follow=true`);
-        return true;
+        router.push(`/main/groups?message=${response.message}&success=true`);
+        return;
       }
       else {
-        return false;
+        router.push(`/main/groups?message=${response.message}&error=true`);
+        return;
       }
     }
     catch (error) {
       console.error(error);
-      return false;
+      router.push(`/main/groups?message=Failed to join group&error=true`);
+      return;
     } 
   }
 

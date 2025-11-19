@@ -29,7 +29,7 @@ interface UserChatStore{
     setSuccess: (success: string | null) => void;
     isUserChatsLoaded: boolean;
     setIsUserChatsLoaded: (isUserChatsLoaded: boolean) => void;
-    loadUser: (userId: string) => Promise<void>;
+    loadUser: (chatUserId: string, userId: string) => Promise<void>;
     addUserToChatStore: (chatUser: ChatUser) => Promise<void>;
     loadExisitngChatUsers: () => Promise<void>;
     checkUserHasMessages: (chatUserId: string) => boolean;
@@ -48,7 +48,7 @@ export const useUserChatStore= create<UserChatStore>()(
             setError: (error: string | null) => set({ error }),
             setSuccess: (success: string | null) => set({ success }),
             setIsUserChatsLoaded: (isUserChatsLoaded: boolean) => set({ isUserChatsLoaded }),
-            loadUser: async (chatUserId: string) => {
+            loadUser: async (chatUserId: string, userId: string) => {
                
                    // set({ isUserChatsLoaded: false });
                     set({ error: null });
@@ -56,7 +56,7 @@ export const useUserChatStore= create<UserChatStore>()(
                     try{
 
                         console.log("Loading user profile from server", chatUserId);
-                    const response = await loadChatUserProfile(chatUserId);
+                    const response = await loadChatUserProfile(chatUserId, userId);
                     if(response.success) {
                         const user = response.data;
                         const chatUser = {

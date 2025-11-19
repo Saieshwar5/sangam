@@ -7,6 +7,11 @@ import { useAuth } from '@/hooks/useAuth';
 import ChatPageHeader from './(components)/chatPageHeader';
 import ContentSection from './(components)/contentSection';
 import GroupShareModal from './(components)/groupShareModal';
+import JoinGroupRequestsModal from './(components)/joinGroupRequestsModal';
+
+
+
+import { GroupJoinSocketRequestsProvider } from '@/app/socketRequests/groupJoinSocketRequests';
 
 export default function GroupDetailPage() {
     const params = useParams();
@@ -16,7 +21,7 @@ export default function GroupDetailPage() {
     
     const [loading, setLoading] = useState(true);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
+    const [isRequestsModalOpen, setIsRequestsModalOpen] = useState(false);
     const groupId = params.groupId as string;
 
     // Derive group from stores using useMemo
@@ -42,10 +47,14 @@ export default function GroupDetailPage() {
         setIsShareModalOpen(true);
     };
 
+    const handleNotificationsClick = () => {
+        setIsRequestsModalOpen(true);
+    };
+
     const handleHeaderClick = () => {
         console.log('Opening group info');
         if (group) {
-            router.push(`/${group.groupId}`);
+            router.push(`/${group.groupId}?joined=true`);
         }
     };
 
@@ -77,6 +86,7 @@ export default function GroupDetailPage() {
     }
 
     return (
+        <GroupJoinSocketRequestsProvider groupId={group.groupId}>
         <>
             <div className='w-full h-full flex flex-col'>
                 <div className='w-full h-[10%]'>
@@ -85,6 +95,7 @@ export default function GroupDetailPage() {
                         onBack={handleBack}
                         onShare={handleShare}
                         onHeaderClick={handleHeaderClick}
+                        onNotificationsClick={handleNotificationsClick}
                     />
                 </div>
                 
@@ -101,8 +112,17 @@ export default function GroupDetailPage() {
                 isOpen={isShareModalOpen}
                 onClose={() => setIsShareModalOpen(false)}
                 group={group}
+                currentUserId={user?.id}
+            />
+
+            <JoinGroupRequestsModal
+                isOpen={isRequestsModalOpen}
+                onClose={() => setIsRequestsModalOpen(false)}
+                groupId={group.groupId}
             />
         </>
+
+        </GroupJoinSocketRequestsProvider>
     )
 }
 

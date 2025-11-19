@@ -1,6 +1,9 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useGroupJoinSocketRequests } from '@/app/socketRequests/groupJoinSocketRequests';
+import { useJoinGroupRequestsStore } from '@/app/context/joinGroupRequestsStore';
 
 interface Group {
     groupId: string;
@@ -22,10 +25,45 @@ interface ChatPageHeaderProps {
     onBack?: () => void;
     onShare?: () => void;
     onHeaderClick?: () => void; // ✅ Add this prop
+    onNotificationsClick?: () => void; // ✅ Add this prop
 }
 
-export default function ChatPageHeader({ group, onBack, onShare, onHeaderClick }: ChatPageHeaderProps) {
+export default function ChatPageHeader({ group, onBack, onShare, onHeaderClick, onNotificationsClick }: ChatPageHeaderProps) {
     const [showMenu, setShowMenu] = useState(false);
+
+    const [notificationOpen, setNotificationOpen] = useState(false);
+
+    
+    const { user } = useAuth();
+    const { hasPendingRequests, pendingRequestsCount, clearNotification, setHasPendingRequests } = useGroupJoinSocketRequests();
+    const { requestsByGroup, loadRequests ,} = useJoinGroupRequestsStore();
+
+
+    useEffect(() => {
+        if (group.groupId) {
+            loadRequests(group.groupId);
+        }
+    }, [group.groupId, loadRequests]);
+
+    const groupRequests = useMemo(() => {
+        return requestsByGroup[group.groupId] || [];
+    }, [requestsByGroup, group.groupId]);
+
+    const shouldShowNotification = useMemo(() => {
+        return hasPendingRequests || groupRequests.length > 0;
+    }, [hasPendingRequests, groupRequests.length, setHasPendingRequests] );
+
+
+    useEffect(() => {
+        if (shouldShowNotification) {
+            setNotificationOpen(true);
+        }
+    }, [shouldShowNotification, pendingRequestsCount]);
+
+
+    const isCreator = useMemo(() => {
+        return group.createdBy === user?.id;
+    }, [group.createdBy, user?.id]);
 
     const handleShare = (e: React.MouseEvent) => {
         e.stopPropagation(); // ✅ Prevent header click
@@ -65,6 +103,17 @@ export default function ChatPageHeader({ group, onBack, onShare, onHeaderClick }
         { label: 'Notifications', action: () => console.log('Notifications') },
         { label: 'Report Group', action: () => console.log('Report Group') },
     ];
+
+    const handleNotificationsClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setNotificationOpen(false);
+        clearNotification(); // Clear the badge
+        if (onNotificationsClick) {
+            onNotificationsClick();
+        }
+    };
+
+
 
     return (
         <div 
@@ -118,6 +167,32 @@ export default function ChatPageHeader({ group, onBack, onShare, onHeaderClick }
 
             {/* Right Section - Share Button + Menu */}
             <div className="flex items-center gap-2 flex-shrink-0">
+
+
+
+
+
+            {isCreator && (
+                <button 
+                    onClick={handleNotificationsClick}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors relative ${
+                        notificationOpen
+                            ? 'bg-red-100 hover:bg-red-200 text-red-600 animate-pulse' 
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                    }`}
+                    title="Notifications"
+                >
+                    {/* Red dot indicator */}
+                    {notificationOpen && (
+                        <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white bg-red-500 transform translate-x-1/4 -translate-y-1/4"></span>
+                    )}
+                    
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </button>
+            )}
+                
                 {/* Share Button */}
                 <button 
                     onClick={handleShare} // ✅ Now with stopPropagation

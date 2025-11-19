@@ -9,6 +9,7 @@ function SignUpForm() {
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId');
   const redirect = searchParams.get('redirect');
+  const referrerId = searchParams.get('referrerId');
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +26,8 @@ function SignUpForm() {
           setRetypePassword('');
           setLoading(false);
           useUserAuthStore.getState().clearMessages();
-           if(groupId && redirect === 'join'){
-          router.push(`/profile?groupId=${groupId}&redirect=join`);
+           if(groupId && redirect === 'join_request'){
+          router.push(`/profile?groupId=${groupId}&redirect=join_request&referrerId=${referrerId}`);
            }
            else{
             router.push(`/profile?newUser=true`);
@@ -87,8 +88,8 @@ function SignUpForm() {
 
 
   const handleSignIn = () => {
-    if(groupId && redirect === 'join'){
-      router.push(`/auth/sign-in?groupId=${groupId}&redirect=join`);
+    if(groupId && redirect === 'join_request'){
+      router.push(`/auth/sign-in?groupId=${groupId}&redirect=join_request&referrerId=${referrerId}`);
     }
     else{
       router.push(`/auth/sign-in`);

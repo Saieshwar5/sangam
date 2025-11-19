@@ -13,14 +13,16 @@ interface GroupShareModalProps {
         description?: string;
         logo?: string;
     };
+    currentUserId: string;
 }
 
-export default function GroupShareModal({ isOpen, onClose, group }: GroupShareModalProps) {
+export default function GroupShareModal({ isOpen, onClose, group, currentUserId }: GroupShareModalProps) {
     const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState<'link' | 'qr'>('link');
     const qrRef = useRef<HTMLDivElement>(null);
     
-    const groupUrl = typeof window !== 'undefined' ? `${window.location.origin}/${group.groupId}` : '';
+    const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}/${group.groupId}` : '';
+    const groupUrl = currentUserId ? `${baseUrl}?referrerId=${currentUserId}` : baseUrl;
 
     const handleCopyLink = async () => {
         try {

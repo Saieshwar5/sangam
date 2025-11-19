@@ -50,7 +50,7 @@ export async function bootstrapServer() {
   });
 
   await syncModels();
-  socketService.initialize(server);
-
+  const io = socketService.initialize(server); // ✅ Capture the returned IO instance
+  app.set('io', io);
   return server;
 }

@@ -1,7 +1,7 @@
 "use client"
 
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
 import { useUserGroupsStore } from '@/app/context/userGroupsStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useJoinGroup } from '@/hooks/userGroups';
@@ -12,6 +12,9 @@ import { loadMembersApi } from '@/api/membersApi';
 import {MdAdd} from "react-icons/md";
 import AttachmentModal from './attachment';
 import { loadGroupMediaApi } from '@/api/saveGroupMedia';
+import { useJoinGroupRequestsStore } from '@/app/context/joinGroupRequestsStore';
+
+
 
 
 import styles from './groupDetails.module.css';
@@ -26,6 +29,7 @@ export default function GroupDetailPage() {
     const joinGroupHook = useJoinGroup();
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user } = useAuth();
     const { userCreatedGroups, userFollowedGroups } = useUserGroupsStore();
     
@@ -39,8 +43,36 @@ export default function GroupDetailPage() {
     const [isGalleryEmpty, setIsGalleryEmpty] = useState(false);
     const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
 
+    const { createRequest } = useJoinGroupRequestsStore();
+
 
     const groupId = params.groupId as string;
+    const referrerId = searchParams.get('referrerId');
+
+
+
+    useEffect(() => {
+        if (referrerId) {
+            console.log(`User referred by: ${referrerId}`);
+            // Optional: Store in session/local storage if you need it after sign-up
+            sessionStorage.setItem('groupReferrerId', referrerId);
+        }
+    }, [referrerId]);
+
+    
+    // ✅ NEW: robust check for membership
+    const isMember = useMemo(() => {
+        if (!groupId) return false;
+        // Check URL param
+        const joinedParam = searchParams.get('joined') === 'true';
+        if (joinedParam) return true;
+
+        // Check store
+        const isInCreated = userCreatedGroups.some(g => g.groupId === groupId);
+        const isInFollowed = userFollowedGroups.some(g => g.groupId === groupId);
+        
+        return isInCreated || isInFollowed;
+    }, [searchParams, userCreatedGroups, userFollowedGroups, groupId]);
 
     useEffect(() => {
         const loadGroupAndFindGroup = async () => {
@@ -91,15 +123,15 @@ useEffect(() => {
     const handleGroupJoin = async () => {
         try {
             if (user && user.id) {
-                const response = await joinGroupHook(groupId);
+                const response = await createRequest(groupId, referrerId ?? '');
                 if (response) {
                     setLoading(false);
-                    router.push('/groups?message=Group joined successfully&success=true&follow=true');
+                    router.push(`/main/groups?message=${response.message}&success=true`);
                 } else {
-                    router.push('/groups');
+                    router.push(`/main/groups?message=${response.message}&error=true`);
                 }
             } else {
-                router.push(`/auth/sign-up?groupId=${groupId}&redirect=join`);
+                router.push(`/auth/sign-up?groupId=${groupId}&redirect=join_request&referrerId=${referrerId}`);
             }
         } catch (error) {
             console.error(error);
@@ -159,6 +191,7 @@ useEffect(() => {
         setGallery((prev) => [media, ...prev]);
         setIsGalleryEmpty(false);
       };
+
 
 
 
@@ -250,15 +283,19 @@ useEffect(() => {
                         >
                             <MdModeEditOutline />
                         </button>
-                        <button 
-                            className={styles.joinButton}
-                            onClick={handleGroupJoin}
-                        >
-                            <span>Join Group</span>
-                            <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </button>
+                        
+                        {/* ✅ CORRECTED: Hide if already a member */}
+                        {!isMember && (
+                            <button 
+                                className={styles.joinButton}
+                                onClick={handleGroupJoin}
+                            >
+                                <span>Join Group</span>
+                                <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                 </div>
                 </div>
@@ -277,7 +314,7 @@ useEffect(() => {
                         ) : (
                             <div className={styles.mobileLogoPlaceholder}>
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                             </div>
                         )}
@@ -286,12 +323,16 @@ useEffect(() => {
                         <h1 className={styles.mobileGroupName}>{group.groupName}</h1>
                         <p className={styles.mobileGroupId}>@{group.uniqueName}</p>
                     </div>
-                    <button 
-                        className={styles.mobileJoinButton}
-                        onClick={handleGroupJoin}
-                    >
-                        Join
-                    </button>
+                    
+                    {/* ✅ CORRECTED: Hide if already a member */}
+                    {!isMember && (
+                        <button 
+                            className={styles.mobileJoinButton}
+                            onClick={handleGroupJoin}
+                        >
+                            Join
+                        </button>
+                    )}
                 </div>
             </div>
 
