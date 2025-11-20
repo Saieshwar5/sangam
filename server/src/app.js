@@ -40,7 +40,7 @@ export async function bootstrapServer() {
   app.use('/api/profile', profileRouter);
   app.use('/api/groups', groupsRouter);
   app.use('/api/posts', PostsRouter);
-  app.use('/api/group', loadMembersRouter);
+  app.use('/api/members', loadMembersRouter);
   app.use('/api/messages', messageRoutes);
   app.use('/api/chat', chatUsersRoutes);
   app.use('/api/comments', commentsRouter);

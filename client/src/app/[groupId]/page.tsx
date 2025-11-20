@@ -14,6 +14,8 @@ import AttachmentModal from './attachment';
 import { loadGroupMediaApi } from '@/api/saveGroupMedia';
 import { useJoinGroupRequestsStore } from '@/app/context/joinGroupRequestsStore';
 
+import { updateUserRoleApi } from '@/api/membersApi';
+
 
 
 
@@ -42,6 +44,8 @@ export default function GroupDetailPage() {
     const [isGalleryLoaded, setIsGalleryLoaded] = useState(false);
     const [isGalleryEmpty, setIsGalleryEmpty] = useState(false);
     const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+
+    const [isCurrentUserCreator, setIsCurrentUserCreator] = useState(false);
 
     const { createRequest } = useJoinGroupRequestsStore();
 
@@ -194,6 +198,23 @@ useEffect(() => {
 
 
 
+
+      useEffect(() => {
+        if (members.length > 0 && user?.id) {
+            const currentUserMember = members.find(m => m.userId === user.id);
+            setIsCurrentUserCreator(currentUserMember?.isCreator || false);
+        }
+    }, [members, user?.id]);
+    
+    // Callback to refresh members after role update
+    const handleRoleUpdate = async (userId: string, newRoles: any) => {
+        
+
+
+        
+        await loadMembers();
+    };
+    
 
 
 
@@ -436,11 +457,18 @@ useEffect(() => {
                         {/* Tab Content */}
                         <div className={styles.membersContent}>
 
-                            {members.map((member) => (
-                                <div key={member.id} onClick={() => openUserProfile(member.userId)}>
-                                <UserCard key={member.id} user={member} />
-                                    </div>
-                            ))}
+                        {members.map((member) => (
+                                                    <div key={member.userId} onClick={() => openUserProfile(member.userId)}>
+                                                        <UserCard 
+                                                            key={member.userId} 
+                                                            user={member}
+                                                            groupId={groupId}
+                                                            currentUserId={user?.id}
+                                                            isCurrentUserCreator={isCurrentUserCreator}
+                                                            onRoleUpdate={handleRoleUpdate}
+                                                        />
+                                                    </div>
+                                                ))}
                                
                         </div>
                     
@@ -547,11 +575,18 @@ useEffect(() => {
                                             <div className={styles.emptyState}>
                                                 <div className={styles.membersContent}>
 
-                                                                        {members.map((member) => (
-                                                                            <div key={member.id} onClick={() => openUserProfile(member.userId)}>
-                                                                            <UserCard key={member.id} user={member} />
-                                                                                </div>
-                                                                            ))}
+                                                {members.map((member) => (
+                                                                <div key={member.userId} onClick={() => openUserProfile(member.userId)}>
+                                                                    <UserCard 
+                                                                        key={member.userId} 
+                                                                        user={member}
+                                                                        groupId={groupId}
+                                                                        currentUserId={user?.id}
+                                                                        isCurrentUserCreator={isCurrentUserCreator}
+                                                                        onRoleUpdate={handleRoleUpdate}
+                                                                    />
+                                                                </div>
+                                                            ))}
                                                 </div>
                                             </div>
                                         )}

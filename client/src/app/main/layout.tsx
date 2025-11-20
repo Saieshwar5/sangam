@@ -9,6 +9,9 @@ import styles from "./mainLayout.module.css"
 import Header from "../ui_components/header"
 import SideBar from "../ui_components/sideBar"
 
+import { GroupJoinAcceptSocketRequestsProvider } from "../socketRequests/groupJoinAcceptSocketReQuests"
+
+
 export default function MainLayout({children}: Readonly<{
     children: React.ReactNode;
   }> )
@@ -25,6 +28,7 @@ export default function MainLayout({children}: Readonly<{
 
     return(
         <SocketProvider>
+        <GroupJoinAcceptSocketRequestsProvider>
         <div className={styles.mainPageLayout} > 
            <div className={`${styles.top} ${hideChromeOnMobile ? "!hidden md:!flex" : ""}`}
            >
@@ -39,6 +43,7 @@ export default function MainLayout({children}: Readonly<{
            {children} 
             </div> 
         </div>
+        </GroupJoinAcceptSocketRequestsProvider>
         </SocketProvider>
     )
 }

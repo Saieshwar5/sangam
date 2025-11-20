@@ -10,6 +10,7 @@ import {
     getGroupInfoController,
     getUserCreatedGroupsController,
     getUserFollowedGroupsController,
+    getUserFollowedGroupByIdController,
 } from '../../controllers/groups/loadGroups.js';
 import { joinGroupRequestController, loadJoinGroupRequestsController, rejectJoinGroupRequestController, acceptJoinGroupRequestController } from '../../controllers/groups/joinGroupRequests.js';
 
@@ -29,6 +30,7 @@ groupsRouter.get('/media/load/:groupId', loadGroupMediaController);
 groupsRouter.get('/join/requests/:groupId', loadJoinGroupRequestsController);
 groupsRouter.post('/join/requests/reject', authMiddleWare, rejectJoinGroupRequestController);
 groupsRouter.post('/join/requests/accept', authMiddleWare, acceptJoinGroupRequestController);
+groupsRouter.get('/load/followed/:groupId', authMiddleWare, getUserFollowedGroupByIdController);
    
 
 export default groupsRouter;

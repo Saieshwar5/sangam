@@ -3,7 +3,7 @@ import { devtools } from "zustand/middleware";
 
 // import { loadUserFollowedGroups, loadUserCreatedGroups, createGroup, updateGroup, deleteGroup, joinGroup, leaveGroup } from "@/api/groupsApis";
 
- import { createGroup, joinGroupApi, loadUserFollowedGroupsApi, loadUserCreatedGroupsApi, leaveGroupApi} from "@/api/groupsApis";
+ import { createGroup, joinGroupApi, loadUserFollowedGroupsApi, loadUserCreatedGroupsApi, leaveGroupApi, loadUserFollowedGroupByIdApi} from "@/api/groupsApis";
 
 
  export interface Group {
@@ -48,6 +48,7 @@ interface UserGroups {
     setIsUserFollowedGroupsLoaded: (isUserFollowedGroupsLoaded: boolean) => void;
     setIsUserCreatedGroupsLoaded: (isUserCreatedGroupsLoaded: boolean) => void;
     setIsUserGroupsLoaded: (isUserGroupsLoaded: boolean) => void;
+    loadUserFollowedGroupById: (groupId: string) => Promise<boolean>;
     
     // ✅ CHANGED: Now accepts array
     setUserFollowedGroups: (groups: Group[]) => void;
@@ -177,6 +178,34 @@ export const useUserGroupsStore = create<UserGroups>()(
                 } catch (error) {
                     console.error(error);
                     setError('Failed to load user followed groups');
+                    return false;
+                }
+            },
+
+            loadUserFollowedGroupById: async (groupId: string) => {
+                const { setError, setSuccess, setIsUserFollowedGroupsLoaded, addUserFollowedGroup, userFollowedGroups } = useUserGroupsStore.getState();
+                setError(null);
+                setSuccess(null);
+                setIsUserFollowedGroupsLoaded(false);
+                try {
+                    const response = await loadUserFollowedGroupByIdApi(groupId);
+                    if (response.success) {
+                        // ✅ Check if group already exists to prevent duplicates
+                        const existingGroup = userFollowedGroups.find(g => g.groupId === groupId);
+                        if (!existingGroup) {
+                            addUserFollowedGroup(response.data);
+                        }
+                        setIsUserFollowedGroupsLoaded(true);
+                        setSuccess('User followed group loaded successfully');
+                        return true;
+                    } else {
+                        setError(response.message);
+                        return false;
+                    }
+                }
+                catch(error){
+                    console.error(error);
+                    setError('Failed to load user followed group by id');
                     return false;
                 }
             },

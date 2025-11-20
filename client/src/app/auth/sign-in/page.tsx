@@ -211,7 +211,7 @@ function SignInForm() {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating Account...
+                  Signing In...
                 </>
               ) : (
                 'Sign In'

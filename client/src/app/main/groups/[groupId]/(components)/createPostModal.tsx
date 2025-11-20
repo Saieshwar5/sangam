@@ -1,11 +1,12 @@
 "use client"
 
-import { useState ,useEffect} from 'react';
+import { useState ,useEffect, useMemo} from 'react';
 import { MdClose, MdImage, MdSend, MdVideoLibrary, MdAttachFile, MdLink, MdDelete } from 'react-icons/md';
 
 import { useGroupPosts } from '@/hooks/useGroupPosts';
 import { useUser } from '@/hooks/useAuth';
 import { useProfileName } from '@/hooks/useProfile';
+import { loadUserRoleApi } from '@/api/membersApi'; 
 
 interface CreatePostModalProps {
     isOpen: boolean;
@@ -34,6 +35,16 @@ const postTypes = {
     "project progress": "update the community about the progress of your project",
     "Other": "Other",
 }
+
+
+const memberAllowedPostTypes = {
+    "Question/ask": "ask a question and get the answers from the community",
+    "appretiation": "appretiation anything or anyone in the community",
+    "report an Issue": "report an Issue",
+    "news/article": "news/article",
+    "request": "request",
+}
+
 
 interface Attachment {
     file?: File;
@@ -79,6 +90,68 @@ export default function CreatePostModal({ isOpen, onClose, groupId, groupName }:
     const [eventTime, setEventTime] = useState('');
     const [eventContactInfo, setEventContactInfo] = useState('');
     let minimumPollOptions = 2;
+
+
+
+    const [userRole, setUserRole] = useState<{
+        isCreator: boolean;
+        isModerator: boolean;
+        isMember: boolean;
+    } | null>(null);
+
+    const [isLoadingRole, setIsLoadingRole] = useState(false);
+    
+
+    // ✅ Fix 1: Properly handle async loading
+    useEffect(() => {
+        if (isOpen && user?.id && !userRole) {
+            setIsLoadingRole(true);
+
+            const fetchUserRole = async () => {
+                try {
+                    const response = await loadUserRoleApi(groupId, user.id);
+                    if (response.success && response.data) {
+                        setUserRole(response.data);
+                    } else {
+                        console.error(response.message);
+                        setUserRole(null);
+                    }
+                } catch (error) {
+                    console.error('Error fetching role:', error);
+                    setUserRole(null);
+                } finally {
+                    setIsLoadingRole(false); // ✅ Now runs after async completes
+                }
+            }
+            fetchUserRole();
+        }
+    }, [isOpen, user?.id, groupId, userRole]);
+
+    const allowedPostTypes = useMemo(() => {
+        if (!userRole) return postTypes; // Show all while loading
+        
+        if (userRole.isCreator || userRole.isModerator) {
+            return postTypes;
+        }
+        else if (userRole.isMember) {
+            return memberAllowedPostTypes;
+        }
+        return postTypes;
+    }, [userRole]);
+
+    // ✅ Fix 2: Check if user is restricted
+    const isRestrictedMember = userRole?.isMember && !userRole?.isCreator && !userRole?.isModerator;
+
+    // ✅ Fix 3: Auto-correct invalid post type
+    useEffect(() => {
+        if (isRestrictedMember && allowedPostTypes) {
+            const allowedKeys = Object.keys(allowedPostTypes);
+            if (!allowedKeys.includes(postType)) {
+                setPostType(allowedKeys[0]); // Switch to first allowed type
+            }
+        }
+    }, [isRestrictedMember, allowedPostTypes, postType]);
+
 
     const addPollOption = () => {
         setPollOptions(prev => [...prev, newPollOption(prev.length + 1)]);
@@ -254,26 +327,41 @@ export default function CreatePostModal({ isOpen, onClose, groupId, groupName }:
                         <div className="mb-4">
                             <label htmlFor="postType" className="block text-sm font-medium text-gray-700 mb-2">
                                 Post Type
+                                {/* ✅ Fix 4: Add visual feedback */}
+                                {isLoadingRole && (
+                                    <span className="ml-2 text-gray-400 text-xs">(Loading...)</span>
+                                )}
+                                {isRestrictedMember && (
+                                    <span className="ml-2 text-orange-600 text-xs">⚠️ Limited access</span>
+                                )}
                             </label>
                             <select
                                 id="postType"
                                 value={postType}
                                 onChange={(e) => setPostType(e.target.value)}
-                                className="w-full md:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                disabled={isLoadingRole}
+                                className="w-full md:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
                             >
-                                {Object.entries(postTypes).map(([key, value]) => (
+                                {Object.entries(allowedPostTypes).map(([key, value]) => (
                                     <option key={key} value={key}>
                                         {key}
                                     </option>
                                 ))}
                             </select>
+                            
+                            {/* ✅ Fix 5: Add helper text for members */}
+                            {isRestrictedMember && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Members can post: Questions, Appreciations, Issue Reports, News/Articles, and Requests
+                                </p>
+                            )}
                         </div>
 
                         {/* Post Content */}
                         <textarea
                             value={postContent}
                             onChange={(e) => setPostContent(e.target.value)}
-                            placeholder={postTypes[postType as keyof typeof postTypes]}
+                            placeholder={allowedPostTypes[postType as keyof typeof allowedPostTypes]}
                             className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             maxLength={500}
                         />

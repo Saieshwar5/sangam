@@ -265,6 +265,28 @@ export async function acceptJoinGroupRequestController(req, res) {
         joinGroupRequest.isAccepted = true;
         await joinGroupRequest.save();
 
+
+        try {
+            const group = await Communities.findOne({ where: { groupId: joinGroupRequest.groupId } });
+            if (group) {
+                const io = req.app.get('io');
+                if (io) {
+                    sendToUser(io, joinGroupRequest.userId, 'join_request_accepted', {
+                        groupId: joinGroupRequest.groupId,
+                        groupName: group.groupName,
+                        groupLogo: group.logo,
+                        requestId: joinGroupRequest.id,
+                        timestamp: new Date()
+                    });
+                    console.log(`🔔 Acceptance notification sent to user ${joinGroupRequest.userId} for group ${joinGroupRequest.groupId}`);
+                }
+            }
+        } catch (notifyError) {
+            console.error('Error sending acceptance notification:', notifyError);
+            // Don't fail the request just because notification failed
+        }
+
+
         return res.status(200).json({
             success: true,
             message: 'Join group request accepted successfully',

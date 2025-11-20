@@ -186,6 +186,23 @@ async function joinGroupRequestApi(groupId: string, referrerId: string)
  }
 
 
+ async function loadUserFollowedGroupByIdApi(groupId: string)
+ {
+    try{
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/groups/load/followed/${groupId}`, {
+            method: "GET",
+            credentials: "include",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.json();
+    }
+    catch(error){
+        console.error(error);
+        throw error;
+    }
+ }
 
 
 
@@ -195,4 +212,6 @@ async function joinGroupRequestApi(groupId: string, referrerId: string)
 
 
 
-export { createGroup, loadUserFollowedGroupsApi, joinGroupApi, loadUserCreatedGroupsApi, leaveGroupApi, loadGroupInfoApi, loadJoinGroupRequestsApi, joinGroupRequestApi, rejectJoinGroupRequestApi, acceptJoinGroupRequestApi };
+
+
+export { createGroup, loadUserFollowedGroupsApi, joinGroupApi, loadUserCreatedGroupsApi, leaveGroupApi, loadGroupInfoApi, loadJoinGroupRequestsApi, joinGroupRequestApi, rejectJoinGroupRequestApi, acceptJoinGroupRequestApi, loadUserFollowedGroupByIdApi };

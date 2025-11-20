@@ -31,6 +31,8 @@ export default function GroupDetailPage() {
         return createdGroup || followedGroup || null;
     }, [groupId, userCreatedGroups, userFollowedGroups]);
 
+    
+
     // Handle side effects (navigation, loading state)
     useEffect(() => {
         if (!group) {
